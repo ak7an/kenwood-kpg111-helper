@@ -8,6 +8,7 @@ from pathlib import Path
 from .decoder import RECORD_SIZE, decode_program_tables
 from .imports import ImportRecord
 from .model import DecodedRecord
+from .tables import trim_after_table
 
 
 TABLE_LABELS = {
@@ -56,22 +57,6 @@ def table_records_by_type(
         "individual_ids": trim_after_table(tables.individual_ids),
         "talk_groups": trim_after_table(tables.talk_groups),
     }
-
-
-def trim_after_table(records: list[DecodedRecord]) -> list[DecodedRecord]:
-    trimmed: list[DecodedRecord] = []
-    saw_empty = False
-    for record in records:
-        if record.empty:
-            saw_empty = True
-            trimmed.append(record)
-            continue
-        if not record.name and saw_empty:
-            break
-        if record.name:
-            saw_empty = False
-        trimmed.append(record)
-    return trimmed
 
 
 def find_existing(
