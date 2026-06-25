@@ -54,6 +54,12 @@ if QtWidgets is not None:  # pragma: no cover - requires Qt
             self.cards["Memory Usage"].set_value("Known limits pending")
             self.cards["Validation Status"].set_value("Not run")
 
+        def set_validation_status(self, warning_count: int) -> None:
+            if warning_count:
+                self.cards["Validation Status"].set_value(f"{warning_count} warnings")
+            else:
+                self.cards["Validation Status"].set_value("No warnings")
+
 else:
 
     class OverviewPage:  # pragma: no cover - simple dependency guard

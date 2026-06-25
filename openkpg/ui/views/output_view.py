@@ -12,6 +12,9 @@ if QtWidgets is not None:  # pragma: no cover - requires Qt
             super().__init__()
             self.setReadOnly(True)
 
+        def write_message(self, message: str) -> None:
+            self.appendPlainText(message)
+
 else:
 
     class OutputView:  # pragma: no cover - simple dependency guard

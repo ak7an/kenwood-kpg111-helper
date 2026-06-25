@@ -25,6 +25,15 @@ writer is implemented.
 - No full replacement for KPG-111D yet.
 - No guarantee that edited files are radio-safe yet.
 
+## OpenKPG
+
+OpenKPG is the future GUI/CPS application for this project. Its current state is
+a read-only application scaffold with a startup screen, project workspace model,
+and DAT opening workflow. The GUI talks to OpenKPG core models, the core talks
+to the backend, and the backend continues to use the existing `kpg111` library.
+
+DAT editing, save/write support, and radio programming are not implemented yet.
+
 ## Key Documents
 
 - [Record specification](docs/RECORD_SPECIFICATION.md)

@@ -5,6 +5,7 @@ import unittest
 from openkpg.backend import OpenKPGProjectBackend
 from openkpg.core.commands import AddChannel, DeleteChannel, EditChannel
 from openkpg.core.project import OpenKPGProject
+from openkpg.core.recent import RecentProjects
 from openkpg.core.validation import (
     validate_duplicate_channels,
     validate_duplicate_talkgroups,
@@ -14,6 +15,8 @@ from openkpg.core.workspace import Workspace
 from openkpg.entities import Channel, Contact, Radio, ScanList, TalkGroup, UnknownRecord, Zone
 from openkpg.ui.qt import QT_BINDING
 from openkpg.ui.views.overview import OVERVIEW_CARDS
+from openkpg.ui.views.welcome import WELCOME_ACTIONS
+from openkpg.ui.windows.main_window import MainWindow
 
 
 FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
@@ -71,6 +74,28 @@ class OpenKPGScaffoldTests(unittest.TestCase):
         self.assertTrue(workspace.dirty)
         self.assertEqual(workspace.undo_stack[0].label, "Add Channel")
 
+    def test_workspace_open_resets_dirty_and_undo(self) -> None:
+        workspace = Workspace(dirty=True)
+        workspace.undo_stack.append(AddChannel())
+
+        workspace.open_project(OpenKPGProject(), "fresh.dat")
+
+        self.assertFalse(workspace.dirty)
+        self.assertEqual(workspace.open_filename, Path("fresh.dat"))
+        self.assertEqual(workspace.undo_stack, [])
+
+    def test_recent_projects_add_list_deduplicate_and_limit(self) -> None:
+        recent = RecentProjects(max_items=2)
+        first = recent.add("first.dat")
+        second = recent.add("second.dat", label="Second")
+        recent.add("first.dat")
+        recent.add("third.dat")
+
+        items = recent.list()
+        self.assertEqual(first.display_name, "first.dat")
+        self.assertEqual(second.display_name, "Second")
+        self.assertEqual([item.path for item in items], [Path("third.dat"), Path("first.dat")])
+
     def test_command_placeholders_do_not_edit(self) -> None:
         for command in (AddChannel(), DeleteChannel(), EditChannel()):
             with self.assertRaises(NotImplementedError):
@@ -87,6 +112,7 @@ class OpenKPGScaffoldTests(unittest.TestCase):
         self.assertGreaterEqual(len(project.talkgroups), 1)
         self.assertGreaterEqual(len(project.contacts), 1)
         self.assertIn("talk_groups", backend.table_summary())
+        self.assertIsInstance(project, OpenKPGProject)
 
     def test_ui_modules_import_without_instantiating_qt(self) -> None:
         import openkpg.app
@@ -96,6 +122,7 @@ class OpenKPGScaffoldTests(unittest.TestCase):
         import openkpg.ui.views.navigation
         import openkpg.ui.views.output_view
         import openkpg.ui.views.validation_view
+        import openkpg.ui.views.welcome
         import openkpg.ui.views.zone_tree
         import openkpg.ui.widgets.memory_bar
         import openkpg.ui.widgets.property_panel
@@ -118,6 +145,24 @@ class OpenKPGScaffoldTests(unittest.TestCase):
                 "Validation Status",
             },
         )
+
+    def test_welcome_actions_cover_startup_placeholders(self) -> None:
+        self.assertEqual(
+            set(WELCOME_ACTIONS),
+            {
+                "Open DAT",
+                "Recent Projects",
+                "New Project",
+                "Import CSV",
+                "Import RepeaterBook",
+                "Documentation",
+                "About OpenKPG",
+            },
+        )
+
+    def test_file_open_workflow_methods_exist_without_qt_execution(self) -> None:
+        self.assertTrue(hasattr(MainWindow, "open_dat"))
+        self.assertTrue(hasattr(MainWindow, "open_dat_path"))
 
 
 if __name__ == "__main__":
