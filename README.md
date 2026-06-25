@@ -30,6 +30,7 @@ writer is implemented.
 - [Record specification](docs/RECORD_SPECIFICATION.md)
 - [Record size audit](docs/RECORD_SIZE_AUDIT.md)
 - [Development roadmap](docs/DEVELOPMENT_ROADMAP.md)
+- [DAT diff experiments](docs/DAT_DIFF_EXPERIMENTS.md)
 - [Evidence matrix](docs/EVIDENCE_MATRIX.md)
 - [Writer design](docs/WRITER_DESIGN.md)
 - [Reverse engineering plan](docs/REVERSE_ENGINEERING_PLAN.md)
@@ -38,8 +39,8 @@ writer is implemented.
 
 - `tools/dat_inspect.py` reports size, hashes, hex summaries, printable
   strings, likely table-like regions, and repeated byte structures.
-- `tools/dat_diff.py` compares two `.dat` files byte-by-byte and summarizes
-  changed offsets and contiguous changed regions.
+- `tools/dat_diff.py` compares two `.dat` files byte-by-byte and produces
+  evidence-grade contiguous changed-range reports for controlled experiments.
 - `tools/dat_search.py` searches for ASCII strings, UTF-16LE strings, decimal
   text, and common integer encodings.
 - `tools/dat_compare_session.py` compares a baseline and modified `.dat` file
