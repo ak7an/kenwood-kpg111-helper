@@ -7,6 +7,33 @@ files. It does not patch, merge, or generate edited KPG111 data files yet. The
 first goal is to collect evidence about the file format before any field-level
 writer is implemented.
 
+## Current Capabilities
+
+- Parse and decode known DAT table structure for observed Talk Group and
+  Individual ID records.
+- Generate allocation reports from existing controlled experiments.
+- Generate byte-level record specifications for known TG/ID records.
+- Run record size audits for the current 32-byte TG/ID record model.
+- Perform byte-for-byte no-op round-trip validation.
+- Run automated tests for decoders, imports, planning, project workflows, record
+  specs, allocation analysis, and round-trip safety.
+
+## Not Yet Supported
+
+- No field-level DAT editing yet.
+- No complete channel, zone, or contact writer yet.
+- No full replacement for KPG-111D yet.
+- No guarantee that edited files are radio-safe yet.
+
+## Key Documents
+
+- [Record specification](docs/RECORD_SPECIFICATION.md)
+- [Record size audit](docs/RECORD_SIZE_AUDIT.md)
+- [Development roadmap](docs/DEVELOPMENT_ROADMAP.md)
+- [Evidence matrix](docs/EVIDENCE_MATRIX.md)
+- [Writer design](docs/WRITER_DESIGN.md)
+- [Reverse engineering plan](docs/REVERSE_ENGINEERING_PLAN.md)
+
 ## Tools
 
 - `tools/dat_inspect.py` reports size, hashes, hex summaries, printable
@@ -114,6 +141,22 @@ python3 tools/dat_roundtrip_check.py Program.dat --decode-key 0x5b --output roun
 Round-trip validation is the safety foundation before any future field-level
 editing. An unchanged file must parse, serialize through the project, and match
 the original bytes exactly before edited output can be considered.
+
+## Safety Rules
+
+- Never write edited DAT files without round-trip tests.
+- Preserve unknown bytes.
+- Prefer additive decoding over destructive rewriting.
+- Every encoder must have tests.
+- Every fixture must pass byte-identical round-trip unless intentionally edited.
+
+## Recommended Developer Workflow
+
+1. Start from known-good DAT fixtures.
+2. Make one KPG-111D change at a time.
+3. Compare before/after bytes.
+4. Document offsets and meanings.
+5. Add tests before expanding edits.
 
 ## Research Workflow
 
