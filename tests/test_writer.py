@@ -4,8 +4,8 @@ import sys
 import tempfile
 import unittest
 
-from kpg111.decoder import NAME_LENGTH, NAME_START
-from kpg111.writer import WriterError, rename_record
+from kpg111.decoder import NAME_LENGTH, NAME_START, NUMERIC_LENGTH, NUMERIC_START
+from kpg111.writer import WriterError, edit_record, rename_record
 
 
 FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
@@ -45,6 +45,74 @@ class WriterTests(unittest.TestCase):
         self.assertTrue(changed_offsets)
         self.assertLessEqual(changed_offsets, name_offsets)
 
+    def test_talk_group_numeric_id_edit_changes_only_expected_id_bytes(self) -> None:
+        original = FIXTURE.read_bytes()
+        result = edit_record(original, DECODE_KEY, "talk_groups", 1, numeric_id=12345)
+
+        changed_offsets = self._changed_offsets(original, result.data)
+        id_offsets = set(range(0x14FA0 + NUMERIC_START, 0x14FA0 + NUMERIC_START + NUMERIC_LENGTH))
+
+        self.assertTrue(changed_offsets)
+        self.assertLessEqual(changed_offsets, id_offsets)
+        self.assertEqual(
+            result.data[0x14FA0 + NUMERIC_START : 0x14FA0 + NUMERIC_START + NUMERIC_LENGTH],
+            bytes(byte ^ DECODE_KEY for byte in (12345).to_bytes(NUMERIC_LENGTH, "little")),
+        )
+
+    def test_individual_id_numeric_id_edit_changes_only_expected_id_bytes(self) -> None:
+        original = FIXTURE.read_bytes()
+        result = edit_record(original, DECODE_KEY, "individual_ids", 1, numeric_id=12345)
+
+        changed_offsets = self._changed_offsets(original, result.data)
+        id_offsets = set(range(0x104A0 + NUMERIC_START, 0x104A0 + NUMERIC_START + NUMERIC_LENGTH))
+
+        self.assertTrue(changed_offsets)
+        self.assertLessEqual(changed_offsets, id_offsets)
+
+    def test_combined_name_and_id_edit_changes_only_expected_bytes(self) -> None:
+        original = FIXTURE.read_bytes()
+        result = edit_record(
+            original,
+            DECODE_KEY,
+            "talk_groups",
+            1,
+            name="TEST TG",
+            numeric_id=12345,
+        )
+
+        changed_offsets = self._changed_offsets(original, result.data)
+        name_offsets = set(range(0x14FA0 + NAME_START, 0x14FA0 + NAME_START + NAME_LENGTH))
+        id_offsets = set(range(0x14FA0 + NUMERIC_START, 0x14FA0 + NUMERIC_START + NUMERIC_LENGTH))
+
+        self.assertTrue(changed_offsets)
+        self.assertLessEqual(changed_offsets, name_offsets | id_offsets)
+        self.assertTrue(changed_offsets & name_offsets)
+        self.assertTrue(changed_offsets & id_offsets)
+
+    def test_talk_group_id_65519_is_accepted(self) -> None:
+        original = FIXTURE.read_bytes()
+        result = edit_record(original, DECODE_KEY, "talk_groups", 1, numeric_id=65519)
+
+        self.assertNotEqual(result.data, original)
+
+    def test_talk_group_id_65520_is_rejected(self) -> None:
+        original = FIXTURE.read_bytes()
+        with self.assertRaises(WriterError):
+            edit_record(original, DECODE_KEY, "talk_groups", 1, numeric_id=65520)
+
+    def test_talk_group_id_zero_is_rejected(self) -> None:
+        original = FIXTURE.read_bytes()
+        with self.assertRaises(WriterError):
+            edit_record(original, DECODE_KEY, "talk_groups", 1, numeric_id=0)
+
+    def test_individual_id_range_enforcement_works(self) -> None:
+        original = FIXTURE.read_bytes()
+        edit_record(original, DECODE_KEY, "individual_ids", 1, numeric_id=65519)
+        with self.assertRaises(WriterError):
+            edit_record(original, DECODE_KEY, "individual_ids", 1, numeric_id=65520)
+        with self.assertRaises(WriterError):
+            edit_record(original, DECODE_KEY, "individual_ids", 1, numeric_id=0)
+
     def test_unknown_bytes_remain_unchanged(self) -> None:
         original = FIXTURE.read_bytes()
         result = rename_record(original, DECODE_KEY, "talk_groups", 1, "TEST TG")
@@ -67,6 +135,11 @@ class WriterTests(unittest.TestCase):
         original = FIXTURE.read_bytes()
         with self.assertRaises(WriterError):
             rename_record(original, DECODE_KEY, "talk_groups", 9999, "TEST")
+
+    def test_edit_requires_name_or_id(self) -> None:
+        original = FIXTURE.read_bytes()
+        with self.assertRaises(WriterError):
+            edit_record(original, DECODE_KEY, "talk_groups", 1)
 
     def test_input_file_cannot_be_overwritten_by_accident(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

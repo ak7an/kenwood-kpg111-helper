@@ -9,14 +9,17 @@ The initial writer supports only:
 
 - Rename one decoded Talk Group record.
 - Rename one decoded Individual ID record.
+- Change one decoded Talk Group numeric ID.
+- Change one decoded Individual ID numeric ID.
 
 It does not edit channels. It does not allocate records. It does not generate a
 new DAT file from scratch. It copies the original bytes and changes only the
-encoded name bytes for one occupied decoded record.
+encoded name bytes and/or encoded numeric ID bytes for one occupied decoded
+record.
 
-Numeric ID writing is intentionally not exposed by this first writer, even
-though the decoder can read numeric IDs. Keeping the first writer name-only
-reduces the validation surface.
+Numeric ID editing is experimental. Talk Group IDs are limited to `1..65519`.
+Individual IDs are currently treated conservatively with the same `1..65519`
+range unless later evidence proves a different validated range.
 
 ## Safety rules
 
@@ -38,6 +41,9 @@ pass.
 ```bash
 python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --name "TEST TG"
 python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --slot 1 --name "TEST ID"
+python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --id 12345
+python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --slot 1 --id 12345
+python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --name "TEST TG" --id 12345
 ```
 
 The tool prints the exact byte ranges changed and verifies that the output

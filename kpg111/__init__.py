@@ -3,7 +3,7 @@
 from .decoder import decode_program_tables, decode_table
 from .model import DecodedRecord, ProgramTables
 from .project import KPG111Project
-from .writer import ByteRange, WriteResult, WriterError, rename_record
+from .writer import ByteRange, WriteResult, WriterError, edit_record, rename_record
 
 __all__ = [
     "ByteRange",
@@ -14,5 +14,6 @@ __all__ = [
     "WriterError",
     "decode_program_tables",
     "decode_table",
+    "edit_record",
     "rename_record",
 ]

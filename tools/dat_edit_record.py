@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Experimentally rename one decoded KPG111 Talk Group or Individual ID record."""
+"""Experimentally edit one decoded KPG111 Talk Group or Individual ID record."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from kpg111.writer import (
     ByteRange,
     WriterError,
+    edit_record,
     load_dat,
-    rename_record,
     verify_only_ranges_changed,
     write_result,
 )
@@ -21,7 +21,7 @@ from kpg111.writer import (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Experimentally rename one known decoded TG/ID record in a copy of a DAT file."
+        description="Experimentally edit one known decoded TG/ID record in a copy of a DAT file."
     )
     parser.add_argument("input_dat", type=Path, help="Input KPG111 .dat file")
     parser.add_argument("output_dat", type=Path, help="Output KPG111 .dat file")
@@ -31,8 +31,9 @@ def parse_args() -> argparse.Namespace:
         choices=("talk_groups", "individual_ids"),
         help="Decoded table containing the target record",
     )
-    parser.add_argument("--slot", required=True, type=int, help="Decoded table slot to rename")
-    parser.add_argument("--name", required=True, help="New record name, 14 ASCII bytes or fewer")
+    parser.add_argument("--slot", required=True, type=int, help="Decoded table slot to edit")
+    parser.add_argument("--name", help="New record name, 14 ASCII bytes or fewer")
+    parser.add_argument("--id", type=int, help="New numeric ID, 1 through 65519")
     parser.add_argument(
         "--decode-key",
         type=lambda value: int(value, 0),
@@ -77,12 +78,16 @@ def main() -> int:
             raise WriterError("refusing to overwrite input file without --allow-overwrite-input")
 
         original = load_dat(args.input_dat)
-        result = rename_record(
+        if args.name is None and args.id is None:
+            raise WriterError("at least one of --name or --id is required")
+
+        result = edit_record(
             original,
             args.decode_key,
             args.table,
             args.slot,
-            args.name,
+            name=args.name,
+            numeric_id=args.id,
         )
 
         verify_only_ranges_changed(original, result.data, result.changed_ranges)

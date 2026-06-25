@@ -8,6 +8,8 @@ from pathlib import Path
 from .decoder import (
     NAME_LENGTH,
     NAME_START,
+    NUMERIC_LENGTH,
+    NUMERIC_START,
     RECORD_SIZE,
     TABLE_DEFINITIONS,
     decode_table,
@@ -17,6 +19,8 @@ from .model import DecodedRecord
 
 
 SUPPORTED_TABLES = {table_id: (table_name, start) for table_id, table_name, start in TABLE_DEFINITIONS}
+MIN_NUMERIC_ID = 1
+MAX_NUMERIC_ID = 65519
 
 
 class WriterError(ValueError):
@@ -59,9 +63,27 @@ def rename_record(
 ) -> WriteResult:
     """Rename one already-decoded occupied Talk Group or Individual ID record."""
 
+    return edit_record(data, decode_key, table, slot, name=name)
+
+
+def edit_record(
+    data: bytes,
+    decode_key: int,
+    table: str,
+    slot: int,
+    name: str | None = None,
+    numeric_id: int | None = None,
+) -> WriteResult:
+    """Edit supported fields on one occupied Talk Group or Individual ID record."""
+
     table_name, table_start = _table_definition(table)
     _validate_slot(slot)
-    _validate_name(name)
+    if name is None and numeric_id is None:
+        raise WriterError("at least one supported field change is required")
+    if name is not None:
+        _validate_name(name)
+    if numeric_id is not None:
+        _validate_numeric_id(table, numeric_id)
 
     records = decode_table(
         data,
@@ -77,14 +99,25 @@ def rename_record(
         raise WriterError(f"slot {slot} is not an occupied decoded record in {table}")
 
     candidate = bytearray(data)
-    encoded_name = _encode_name(name, decode_key)
-    name_offset = target.offset + NAME_START
-    candidate[name_offset : name_offset + NAME_LENGTH] = encoded_name
+    allowed_ranges: list[ByteRange] = []
+
+    if name is not None:
+        encoded_name = _encode_name(name, decode_key)
+        name_offset = target.offset + NAME_START
+        candidate[name_offset : name_offset + NAME_LENGTH] = encoded_name
+        allowed_ranges.append(ByteRange(name_offset, name_offset + NAME_LENGTH))
+
+    if numeric_id is not None:
+        encoded_id = _encode_numeric_id(numeric_id, decode_key)
+        numeric_offset = target.offset + NUMERIC_START
+        candidate[numeric_offset : numeric_offset + NUMERIC_LENGTH] = encoded_id
+        allowed_ranges.append(ByteRange(numeric_offset, numeric_offset + NUMERIC_LENGTH))
+
     output = bytes(candidate)
 
     changed_ranges = changed_byte_ranges(data, output)
-    _verify_changed_ranges(data, output, changed_ranges)
-    _verify_rename_decodes(data, output, decode_key, table, slot, name)
+    verify_only_ranges_changed(data, output, allowed_ranges)
+    _verify_edit_decodes(data, output, decode_key, table, slot, name, numeric_id)
 
     return WriteResult(
         data=output,
@@ -174,22 +207,32 @@ def _validate_name(name: str) -> None:
         raise WriterError("name must contain only printable ASCII characters")
 
 
+def _validate_numeric_id(table: str, numeric_id: int) -> None:
+    _table_definition(table)
+    if numeric_id < MIN_NUMERIC_ID or numeric_id > MAX_NUMERIC_ID:
+        raise WriterError(
+            f"{table} numeric ID must be between {MIN_NUMERIC_ID} and {MAX_NUMERIC_ID}"
+        )
+
+
 def _encode_name(name: str, decode_key: int) -> bytes:
     decoded = name.encode("ascii").ljust(NAME_LENGTH, b"\x00")
     return xor_bytes(decoded, decode_key)
 
 
-def _verify_changed_ranges(original: bytes, candidate: bytes, ranges: list[ByteRange]) -> None:
-    verify_only_ranges_changed(original, candidate, ranges)
+def _encode_numeric_id(numeric_id: int, decode_key: int) -> bytes:
+    decoded = numeric_id.to_bytes(NUMERIC_LENGTH, "little")
+    return xor_bytes(decoded, decode_key)
 
 
-def _verify_rename_decodes(
+def _verify_edit_decodes(
     original: bytes,
     candidate: bytes,
     decode_key: int,
     table: str,
     slot: int,
-    name: str,
+    name: str | None,
+    numeric_id: int | None,
 ) -> None:
     original_records = _decode_known_records(original, decode_key)
     candidate_records = _decode_known_records(candidate, decode_key)
@@ -199,13 +242,20 @@ def _verify_rename_decodes(
 
     for key, original_record in original_records.items():
         candidate_record = candidate_records[key]
-        expected_name = name if key == (table, slot) else original_record.name
+        is_target = key == (table, slot)
+        expected_name = name if is_target and name is not None else original_record.name
+        expected_numeric_id = (
+            numeric_id if is_target and numeric_id is not None else original_record.numeric_id
+        )
         if candidate_record.name != expected_name:
             raise WriterError(
                 f"decoded name mismatch for {key[0]} slot {key[1]}: {candidate_record.name!r}"
             )
-        if candidate_record.numeric_id != original_record.numeric_id:
-            raise WriterError(f"numeric ID changed unexpectedly for {key[0]} slot {key[1]}")
+        if candidate_record.numeric_id != expected_numeric_id:
+            raise WriterError(
+                f"decoded numeric ID mismatch for {key[0]} slot {key[1]}: "
+                f"{candidate_record.numeric_id}"
+            )
         if candidate_record.empty != original_record.empty:
             raise WriterError(f"empty-state changed unexpectedly for {key[0]} slot {key[1]}")
 
