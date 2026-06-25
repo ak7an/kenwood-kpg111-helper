@@ -1,0 +1,15 @@
+table_id,slot,offset_hex,name,numeric_id,empty
+individual_ids,0,0x00010480,"Curtis, AE4BT",16042,False
+individual_ids,1,0x000104a0,"Frank, KF4CLO",1571,False
+individual_ids,2,0x000104c0,"Ed, AK7AN",12354,False
+individual_ids,3,0x000104e0,"Kelli, KD0CVD",12353,False
+individual_ids,4,0x00010500,"Chris, K4DKK",12239,False
+individual_ids,5,0x00010520,DVNET,9999,False
+individual_ids,6,0x00010540,No NXDN ID,31099,False
+individual_ids,7,0x00010560,"Bjorn, SA7AUX",16050,False
+individual_ids,8,0x00010580,"Doug, W4DBG",1044,False
+individual_ids,9,0x000105a0,"Jamie, KQ1USA",5770,False
+individual_ids,10,0x000105c0,"Randy, W8EJC",39828,False
+individual_ids,11,0x000105e0,BitByBit Hams,12345,False
+individual_ids,12,0x00010600,"Tom, K4TH",9630,False
+individual_ids,13,0x00010620,NX4DX BitbyBit,10417,False

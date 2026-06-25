@@ -1,0 +1,1144 @@
+{
+  "schema": "kpg111-helper.xor-analysis.v1",
+  "baseline": {
+    "path": "research/dattest/Dattest/AK7AN_Travel.dat",
+    "size": 168257,
+    "sha256": "aa20a84b5cb76e5fd58a691eb26fdc4140e7d75fb3bd6b28fc156f3ec4144cce"
+  },
+  "baseline_payload_profile": {
+    "unique": 249,
+    "zero": 2,
+    "ff": 27,
+    "printable": 14281,
+    "most_common": [
+      {
+        "byte": 164,
+        "count": 146542
+      },
+      {
+        "byte": 91,
+        "count": 5210
+      },
+      {
+        "byte": 123,
+        "count": 1129
+      },
+      {
+        "byte": 83,
+        "count": 897
+      },
+      {
+        "byte": 106,
+        "count": 588
+      },
+      {
+        "byte": 107,
+        "count": 584
+      },
+      {
+        "byte": 90,
+        "count": 544
+      },
+      {
+        "byte": 111,
+        "count": 510
+      },
+      {
+        "byte": 72,
+        "count": 429
+      },
+      {
+        "byte": 117,
+        "count": 424
+      },
+      {
+        "byte": 166,
+        "count": 419
+      },
+      {
+        "byte": 88,
+        "count": 364
+      }
+    ]
+  },
+  "pairs": [
+    {
+      "modified": {
+        "path": "research/dattest3/Dattest3/Program.dat",
+        "size": 168257,
+        "sha256": "c73e0cb6bcbff5765e90ceb4fcf856cb7e8088587a8deb4412b5b57868ee0cf5"
+      },
+      "common_prefix_length": 64,
+      "common_suffix_length": 0,
+      "payload_start": 64,
+      "payload_length_compared": 168193,
+      "dominant_xor": 68,
+      "dominant_xor_count": 167730,
+      "dominant_xor_ratio": 0.9972472100503588,
+      "xor_counts_top": [
+        {
+          "xor": 68,
+          "count": 167730
+        },
+        {
+          "xor": 155,
+          "count": 67
+        },
+        {
+          "xor": 139,
+          "count": 54
+        },
+        {
+          "xor": 242,
+          "count": 40
+        },
+        {
+          "xor": 187,
+          "count": 39
+        },
+        {
+          "xor": 255,
+          "count": 27
+        },
+        {
+          "xor": 238,
+          "count": 25
+        },
+        {
+          "xor": 137,
+          "count": 21
+        },
+        {
+          "xor": 239,
+          "count": 14
+        },
+        {
+          "xor": 245,
+          "count": 13
+        },
+        {
+          "xor": 252,
+          "count": 12
+        },
+        {
+          "xor": 233,
+          "count": 12
+        },
+        {
+          "xor": 244,
+          "count": 12
+        },
+        {
+          "xor": 235,
+          "count": 12
+        },
+        {
+          "xor": 138,
+          "count": 7
+        },
+        {
+          "xor": 142,
+          "count": 6
+        },
+        {
+          "xor": 130,
+          "count": 5
+        },
+        {
+          "xor": 222,
+          "count": 4
+        },
+        {
+          "xor": 131,
+          "count": 4
+        },
+        {
+          "xor": 140,
+          "count": 4
+        }
+      ],
+      "xor_exception_count": 463,
+      "xor_exception_regions": [
+        {
+          "start": 67137,
+          "end": 67150,
+          "length": 14
+        },
+        {
+          "start": 67155,
+          "end": 67155,
+          "length": 1
+        },
+        {
+          "start": 67169,
+          "end": 67182,
+          "length": 14
+        },
+        {
+          "start": 67187,
+          "end": 67188,
+          "length": 2
+        },
+        {
+          "start": 67201,
+          "end": 67214,
+          "length": 14
+        },
+        {
+          "start": 67219,
+          "end": 67220,
+          "length": 2
+        },
+        {
+          "start": 67233,
+          "end": 67246,
+          "length": 14
+        },
+        {
+          "start": 67251,
+          "end": 67252,
+          "length": 2
+        },
+        {
+          "start": 67265,
+          "end": 67278,
+          "length": 14
+        },
+        {
+          "start": 67283,
+          "end": 67284,
+          "length": 2
+        },
+        {
+          "start": 67297,
+          "end": 67310,
+          "length": 14
+        },
+        {
+          "start": 67315,
+          "end": 67316,
+          "length": 2
+        },
+        {
+          "start": 67329,
+          "end": 67342,
+          "length": 14
+        },
+        {
+          "start": 67347,
+          "end": 67348,
+          "length": 2
+        },
+        {
+          "start": 67361,
+          "end": 67374,
+          "length": 14
+        },
+        {
+          "start": 67379,
+          "end": 67380,
+          "length": 2
+        },
+        {
+          "start": 67393,
+          "end": 67406,
+          "length": 14
+        },
+        {
+          "start": 67411,
+          "end": 67412,
+          "length": 2
+        },
+        {
+          "start": 67425,
+          "end": 67438,
+          "length": 14
+        },
+        {
+          "start": 67443,
+          "end": 67444,
+          "length": 2
+        },
+        {
+          "start": 67457,
+          "end": 67470,
+          "length": 14
+        },
+        {
+          "start": 67475,
+          "end": 67476,
+          "length": 2
+        },
+        {
+          "start": 67489,
+          "end": 67502,
+          "length": 14
+        },
+        {
+          "start": 67507,
+          "end": 67508,
+          "length": 2
+        },
+        {
+          "start": 67521,
+          "end": 67534,
+          "length": 14
+        },
+        {
+          "start": 67539,
+          "end": 67540,
+          "length": 2
+        },
+        {
+          "start": 67553,
+          "end": 67566,
+          "length": 14
+        },
+        {
+          "start": 67571,
+          "end": 67572,
+          "length": 2
+        },
+        {
+          "start": 67585,
+          "end": 67598,
+          "length": 14
+        },
+        {
+          "start": 67603,
+          "end": 67604,
+          "length": 2
+        },
+        {
+          "start": 67617,
+          "end": 67630,
+          "length": 14
+        },
+        {
+          "start": 67635,
+          "end": 67636,
+          "length": 2
+        },
+        {
+          "start": 86433,
+          "end": 86446,
+          "length": 14
+        },
+        {
+          "start": 86451,
+          "end": 86452,
+          "length": 2
+        },
+        {
+          "start": 86465,
+          "end": 86478,
+          "length": 14
+        },
+        {
+          "start": 86483,
+          "end": 86484,
+          "length": 2
+        },
+        {
+          "start": 86497,
+          "end": 86510,
+          "length": 14
+        },
+        {
+          "start": 86515,
+          "end": 86516,
+          "length": 2
+        },
+        {
+          "start": 86529,
+          "end": 86542,
+          "length": 14
+        },
+        {
+          "start": 86547,
+          "end": 86548,
+          "length": 2
+        },
+        {
+          "start": 86561,
+          "end": 86574,
+          "length": 14
+        },
+        {
+          "start": 86579,
+          "end": 86580,
+          "length": 2
+        },
+        {
+          "start": 86593,
+          "end": 86606,
+          "length": 14
+        },
+        {
+          "start": 86611,
+          "end": 86612,
+          "length": 2
+        },
+        {
+          "start": 86625,
+          "end": 86638,
+          "length": 14
+        },
+        {
+          "start": 86643,
+          "end": 86644,
+          "length": 2
+        },
+        {
+          "start": 86657,
+          "end": 86670,
+          "length": 14
+        },
+        {
+          "start": 86675,
+          "end": 86676,
+          "length": 2
+        },
+        {
+          "start": 86689,
+          "end": 86702,
+          "length": 14
+        },
+        {
+          "start": 86707,
+          "end": 86708,
+          "length": 2
+        },
+        {
+          "start": 86721,
+          "end": 86734,
+          "length": 14
+        },
+        {
+          "start": 86739,
+          "end": 86740,
+          "length": 2
+        },
+        {
+          "start": 86753,
+          "end": 86766,
+          "length": 14
+        },
+        {
+          "start": 86771,
+          "end": 86772,
+          "length": 2
+        },
+        {
+          "start": 86785,
+          "end": 86798,
+          "length": 14
+        },
+        {
+          "start": 86803,
+          "end": 86804,
+          "length": 2
+        },
+        {
+          "start": 86817,
+          "end": 86830,
+          "length": 14
+        },
+        {
+          "start": 86835,
+          "end": 86836,
+          "length": 2
+        }
+      ],
+      "xor_exception_counts_top": [
+        {
+          "xor": 155,
+          "count": 67
+        },
+        {
+          "xor": 139,
+          "count": 54
+        },
+        {
+          "xor": 242,
+          "count": 40
+        },
+        {
+          "xor": 187,
+          "count": 39
+        },
+        {
+          "xor": 255,
+          "count": 27
+        },
+        {
+          "xor": 238,
+          "count": 25
+        },
+        {
+          "xor": 137,
+          "count": 21
+        },
+        {
+          "xor": 239,
+          "count": 14
+        },
+        {
+          "xor": 245,
+          "count": 13
+        },
+        {
+          "xor": 252,
+          "count": 12
+        },
+        {
+          "xor": 233,
+          "count": 12
+        },
+        {
+          "xor": 244,
+          "count": 12
+        },
+        {
+          "xor": 235,
+          "count": 12
+        },
+        {
+          "xor": 138,
+          "count": 7
+        },
+        {
+          "xor": 142,
+          "count": 6
+        },
+        {
+          "xor": 130,
+          "count": 5
+        },
+        {
+          "xor": 222,
+          "count": 4
+        },
+        {
+          "xor": 131,
+          "count": 4
+        },
+        {
+          "xor": 140,
+          "count": 4
+        },
+        {
+          "xor": 136,
+          "count": 4
+        }
+      ],
+      "normalized_changed_count": 463,
+      "normalized_changed_regions": [
+        {
+          "start": 67137,
+          "end": 67150,
+          "length": 14
+        },
+        {
+          "start": 67155,
+          "end": 67155,
+          "length": 1
+        },
+        {
+          "start": 67169,
+          "end": 67182,
+          "length": 14
+        },
+        {
+          "start": 67187,
+          "end": 67188,
+          "length": 2
+        },
+        {
+          "start": 67201,
+          "end": 67214,
+          "length": 14
+        },
+        {
+          "start": 67219,
+          "end": 67220,
+          "length": 2
+        },
+        {
+          "start": 67233,
+          "end": 67246,
+          "length": 14
+        },
+        {
+          "start": 67251,
+          "end": 67252,
+          "length": 2
+        },
+        {
+          "start": 67265,
+          "end": 67278,
+          "length": 14
+        },
+        {
+          "start": 67283,
+          "end": 67284,
+          "length": 2
+        },
+        {
+          "start": 67297,
+          "end": 67310,
+          "length": 14
+        },
+        {
+          "start": 67315,
+          "end": 67316,
+          "length": 2
+        },
+        {
+          "start": 67329,
+          "end": 67342,
+          "length": 14
+        },
+        {
+          "start": 67347,
+          "end": 67348,
+          "length": 2
+        },
+        {
+          "start": 67361,
+          "end": 67374,
+          "length": 14
+        },
+        {
+          "start": 67379,
+          "end": 67380,
+          "length": 2
+        },
+        {
+          "start": 67393,
+          "end": 67406,
+          "length": 14
+        },
+        {
+          "start": 67411,
+          "end": 67412,
+          "length": 2
+        },
+        {
+          "start": 67425,
+          "end": 67438,
+          "length": 14
+        },
+        {
+          "start": 67443,
+          "end": 67444,
+          "length": 2
+        },
+        {
+          "start": 67457,
+          "end": 67470,
+          "length": 14
+        },
+        {
+          "start": 67475,
+          "end": 67476,
+          "length": 2
+        },
+        {
+          "start": 67489,
+          "end": 67502,
+          "length": 14
+        },
+        {
+          "start": 67507,
+          "end": 67508,
+          "length": 2
+        },
+        {
+          "start": 67521,
+          "end": 67534,
+          "length": 14
+        },
+        {
+          "start": 67539,
+          "end": 67540,
+          "length": 2
+        },
+        {
+          "start": 67553,
+          "end": 67566,
+          "length": 14
+        },
+        {
+          "start": 67571,
+          "end": 67572,
+          "length": 2
+        },
+        {
+          "start": 67585,
+          "end": 67598,
+          "length": 14
+        },
+        {
+          "start": 67603,
+          "end": 67604,
+          "length": 2
+        },
+        {
+          "start": 67617,
+          "end": 67630,
+          "length": 14
+        },
+        {
+          "start": 67635,
+          "end": 67636,
+          "length": 2
+        },
+        {
+          "start": 86433,
+          "end": 86446,
+          "length": 14
+        },
+        {
+          "start": 86451,
+          "end": 86452,
+          "length": 2
+        },
+        {
+          "start": 86465,
+          "end": 86478,
+          "length": 14
+        },
+        {
+          "start": 86483,
+          "end": 86484,
+          "length": 2
+        },
+        {
+          "start": 86497,
+          "end": 86510,
+          "length": 14
+        },
+        {
+          "start": 86515,
+          "end": 86516,
+          "length": 2
+        },
+        {
+          "start": 86529,
+          "end": 86542,
+          "length": 14
+        },
+        {
+          "start": 86547,
+          "end": 86548,
+          "length": 2
+        },
+        {
+          "start": 86561,
+          "end": 86574,
+          "length": 14
+        },
+        {
+          "start": 86579,
+          "end": 86580,
+          "length": 2
+        },
+        {
+          "start": 86593,
+          "end": 86606,
+          "length": 14
+        },
+        {
+          "start": 86611,
+          "end": 86612,
+          "length": 2
+        },
+        {
+          "start": 86625,
+          "end": 86638,
+          "length": 14
+        },
+        {
+          "start": 86643,
+          "end": 86644,
+          "length": 2
+        },
+        {
+          "start": 86657,
+          "end": 86670,
+          "length": 14
+        },
+        {
+          "start": 86675,
+          "end": 86676,
+          "length": 2
+        },
+        {
+          "start": 86689,
+          "end": 86702,
+          "length": 14
+        },
+        {
+          "start": 86707,
+          "end": 86708,
+          "length": 2
+        },
+        {
+          "start": 86721,
+          "end": 86734,
+          "length": 14
+        },
+        {
+          "start": 86739,
+          "end": 86740,
+          "length": 2
+        },
+        {
+          "start": 86753,
+          "end": 86766,
+          "length": 14
+        },
+        {
+          "start": 86771,
+          "end": 86772,
+          "length": 2
+        },
+        {
+          "start": 86785,
+          "end": 86798,
+          "length": 14
+        },
+        {
+          "start": 86803,
+          "end": 86804,
+          "length": 2
+        },
+        {
+          "start": 86817,
+          "end": 86830,
+          "length": 14
+        },
+        {
+          "start": 86835,
+          "end": 86836,
+          "length": 2
+        }
+      ],
+      "normalized_changed_samples": [
+        {
+          "start": 67137,
+          "end": 67150,
+          "length": 14,
+          "context_start": 67129,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 12 1f 04 0f 3e 28 2f 04 6d 6e 6e 6a 62 5b a4 a4 a4 a4 b4 a4 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "............>(/.mnnjb[........"
+        },
+        {
+          "start": 67155,
+          "end": 67155,
+          "length": 1,
+          "context_start": 67147,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6e 6a 62 5b a4 a4 a4 a4 b4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": ".................",
+          "after_ascii": "njb[............."
+        },
+        {
+          "start": 67169,
+          "end": 67182,
+          "length": 14,
+          "context_start": 67161,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 16 22 7b 19 3e 28 2f 7b 1d 29 32 3e 35 3f a4 a4 a4 a4 35 e9 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": ".........\"{.>(/{.)2>5?....5..."
+        },
+        {
+          "start": 67187,
+          "end": 67188,
+          "length": 2,
+          "context_start": 67179,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "32 3e 35 3f a4 a4 a4 a4 35 e9 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "2>5?....5........."
+        },
+        {
+          "start": 67201,
+          "end": 67214,
+          "length": 14,
+          "context_start": 67193,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 1f 34 35 7c 2f 7b 37 32 30 3e 5b 5b 5b 5b a4 a4 a4 a4 3d 07 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": ".........45|/{720>[[[[....=..."
+        },
+        {
+          "start": 67219,
+          "end": 67220,
+          "length": 2,
+          "context_start": 67211,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "5b 5b 5b 5b a4 a4 a4 a4 3d 07 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "[[[[....=........."
+        },
+        {
+          "start": 67233,
+          "end": 67246,
+          "length": 14,
+          "context_start": 67225,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 6a 63 5b a4 a4 a4 a4 ae 6c a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkjc[.....l.."
+        },
+        {
+          "start": 67251,
+          "end": 67252,
+          "length": 2,
+          "context_start": 67243,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 6a 63 5b a4 a4 a4 a4 ae 6c a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kjc[.....l........"
+        },
+        {
+          "start": 67265,
+          "end": 67278,
+          "length": 14,
+          "context_start": 67257,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 6a 62 5b a4 a4 a4 a4 e6 ac a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkjb[........"
+        },
+        {
+          "start": 67283,
+          "end": 67284,
+          "length": 2,
+          "context_start": 67275,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 6a 62 5b a4 a4 a4 a4 e6 ac a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kjb[.............."
+        },
+        {
+          "start": 67297,
+          "end": 67310,
+          "length": 14,
+          "context_start": 67289,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 69 6b 5b a4 a4 a4 a4 c0 00 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkik[........"
+        },
+        {
+          "start": 67315,
+          "end": 67316,
+          "length": 2,
+          "context_start": 67307,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 69 6b 5b a4 a4 a4 a4 c0 00 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kik[.............."
+        },
+        {
+          "start": 67329,
+          "end": 67342,
+          "length": 14,
+          "context_start": 67321,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 69 6a 5b a4 a4 a4 a4 c1 26 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkij[.....&.."
+        },
+        {
+          "start": 67347,
+          "end": 67348,
+          "length": 2,
+          "context_start": 67339,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 69 6a 5b a4 a4 a4 a4 c1 26 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kij[.....&........"
+        },
+        {
+          "start": 67361,
+          "end": 67374,
+          "length": 14,
+          "context_start": 67353,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 69 69 5b a4 a4 a4 a4 4a fa a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkii[....J..."
+        },
+        {
+          "start": 67379,
+          "end": 67380,
+          "length": 2,
+          "context_start": 67371,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 69 69 5b a4 a4 a4 a4 4a fa a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kii[....J........."
+        },
+        {
+          "start": 67393,
+          "end": 67406,
+          "length": 14,
+          "context_start": 67385,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 69 68 5b a4 a4 a4 a4 fc 9c a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkih[........"
+        },
+        {
+          "start": 67411,
+          "end": 67412,
+          "length": 2,
+          "context_start": 67403,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 69 68 5b a4 a4 a4 a4 fc 9c a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kih[.............."
+        },
+        {
+          "start": 67425,
+          "end": 67438,
+          "length": 14,
+          "context_start": 67417,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "a4 a4 a4 a4 a4 a4 a4 a4 7b 0e 15 12 0f 7b 12 1f 7b 6b 6b 69 6f 5b a4 a4 a4 a4 40 b4 a4 a4",
+          "before_ascii": "..............................",
+          "after_ascii": "........{....{..{kkio[....@..."
+        },
+        {
+          "start": 67443,
+          "end": 67444,
+          "length": 2,
+          "context_start": 67435,
+          "before_hex": "a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "after_hex": "6b 69 6f 5b a4 a4 a4 a4 40 b4 a4 a4 a4 a4 a4 a4 a4 a4",
+          "before_ascii": "..................",
+          "after_ascii": "kio[....@........."
+        }
+      ],
+      "modified_profile": {
+        "unique": 252,
+        "zero": 27,
+        "ff": 62,
+        "printable": 10478,
+        "most_common": [
+          {
+            "byte": 224,
+            "count": 146079
+          },
+          {
+            "byte": 31,
+            "count": 5249
+          },
+          {
+            "byte": 63,
+            "count": 1196
+          },
+          {
+            "byte": 23,
+            "count": 897
+          },
+          {
+            "byte": 47,
+            "count": 638
+          },
+          {
+            "byte": 46,
+            "count": 595
+          },
+          {
+            "byte": 30,
+            "count": 544
+          },
+          {
+            "byte": 43,
+            "count": 511
+          },
+          {
+            "byte": 12,
+            "count": 429
+          },
+          {
+            "byte": 49,
+            "count": 424
+          },
+          {
+            "byte": 226,
+            "count": 419
+          },
+          {
+            "byte": 28,
+            "count": 366
+          }
+        ]
+      },
+      "normalized_profile": {
+        "unique": 252,
+        "zero": 3,
+        "ff": 27,
+        "printable": 14530,
+        "most_common": [
+          {
+            "byte": 164,
+            "count": 146079
+          },
+          {
+            "byte": 91,
+            "count": 5249
+          },
+          {
+            "byte": 123,
+            "count": 1196
+          },
+          {
+            "byte": 83,
+            "count": 897
+          },
+          {
+            "byte": 107,
+            "count": 638
+          },
+          {
+            "byte": 106,
+            "count": 595
+          },
+          {
+            "byte": 90,
+            "count": 544
+          },
+          {
+            "byte": 111,
+            "count": 511
+          },
+          {
+            "byte": 72,
+            "count": 429
+          },
+          {
+            "byte": 117,
+            "count": 424
+          },
+          {
+            "byte": 166,
+            "count": 419
+          },
+          {
+            "byte": 88,
+            "count": 366
+          }
+        ]
+      }
+    }
+  ]
+}

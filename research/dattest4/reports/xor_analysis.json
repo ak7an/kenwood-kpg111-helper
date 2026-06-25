@@ -1,0 +1,942 @@
+{
+  "schema": "kpg111-helper.xor-analysis.v1",
+  "baseline": {
+    "path": "research/dattest4/Dattest4/Program3.dat",
+    "size": 168257,
+    "sha256": "370e94b05d195f8eb1e3afc9c1d86159f560f217eb5aae3c6193fc8a4501528f"
+  },
+  "baseline_payload_profile": {
+    "unique": 252,
+    "zero": 14,
+    "ff": 8,
+    "printable": 10429,
+    "most_common": [
+      {
+        "byte": 225,
+        "count": 146110
+      },
+      {
+        "byte": 30,
+        "count": 5250
+      },
+      {
+        "byte": 62,
+        "count": 1195
+      },
+      {
+        "byte": 22,
+        "count": 897
+      },
+      {
+        "byte": 46,
+        "count": 636
+      },
+      {
+        "byte": 47,
+        "count": 593
+      },
+      {
+        "byte": 31,
+        "count": 544
+      },
+      {
+        "byte": 42,
+        "count": 511
+      },
+      {
+        "byte": 13,
+        "count": 429
+      },
+      {
+        "byte": 48,
+        "count": 424
+      },
+      {
+        "byte": 227,
+        "count": 419
+      },
+      {
+        "byte": 29,
+        "count": 367
+      }
+    ]
+  },
+  "pairs": [
+    {
+      "modified": {
+        "path": "research/dattest4/Dattest4/Program5.dat",
+        "size": 168257,
+        "sha256": "dd6653642b6be56f6f7364d66c24c0d1357f7dd0e6098bd0f1c49e5fb090c15c"
+      },
+      "common_prefix_length": 64,
+      "common_suffix_length": 0,
+      "payload_start": 64,
+      "payload_length_compared": 168193,
+      "dominant_xor": 70,
+      "dominant_xor_count": 168145,
+      "dominant_xor_ratio": 0.9997146135689357,
+      "xor_counts_top": [
+        {
+          "xor": 70,
+          "count": 168145
+        },
+        {
+          "xor": 185,
+          "count": 17
+        },
+        {
+          "xor": 214,
+          "count": 3
+        },
+        {
+          "xor": 153,
+          "count": 3
+        },
+        {
+          "xor": 137,
+          "count": 3
+        },
+        {
+          "xor": 220,
+          "count": 2
+        },
+        {
+          "xor": 213,
+          "count": 2
+        },
+        {
+          "xor": 240,
+          "count": 2
+        },
+        {
+          "xor": 241,
+          "count": 1
+        },
+        {
+          "xor": 223,
+          "count": 1
+        },
+        {
+          "xor": 229,
+          "count": 1
+        },
+        {
+          "xor": 236,
+          "count": 1
+        },
+        {
+          "xor": 247,
+          "count": 1
+        },
+        {
+          "xor": 237,
+          "count": 1
+        },
+        {
+          "xor": 253,
+          "count": 1
+        },
+        {
+          "xor": 138,
+          "count": 1
+        },
+        {
+          "xor": 136,
+          "count": 1
+        },
+        {
+          "xor": 184,
+          "count": 1
+        },
+        {
+          "xor": 19,
+          "count": 1
+        },
+        {
+          "xor": 254,
+          "count": 1
+        }
+      ],
+      "xor_exception_count": 48,
+      "xor_exception_regions": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2
+        }
+      ],
+      "xor_exception_counts_top": [
+        {
+          "xor": 185,
+          "count": 17
+        },
+        {
+          "xor": 214,
+          "count": 3
+        },
+        {
+          "xor": 153,
+          "count": 3
+        },
+        {
+          "xor": 137,
+          "count": 3
+        },
+        {
+          "xor": 220,
+          "count": 2
+        },
+        {
+          "xor": 213,
+          "count": 2
+        },
+        {
+          "xor": 240,
+          "count": 2
+        },
+        {
+          "xor": 241,
+          "count": 1
+        },
+        {
+          "xor": 223,
+          "count": 1
+        },
+        {
+          "xor": 229,
+          "count": 1
+        },
+        {
+          "xor": 236,
+          "count": 1
+        },
+        {
+          "xor": 247,
+          "count": 1
+        },
+        {
+          "xor": 237,
+          "count": 1
+        },
+        {
+          "xor": 253,
+          "count": 1
+        },
+        {
+          "xor": 138,
+          "count": 1
+        },
+        {
+          "xor": 136,
+          "count": 1
+        },
+        {
+          "xor": 184,
+          "count": 1
+        },
+        {
+          "xor": 19,
+          "count": 1
+        },
+        {
+          "xor": 254,
+          "count": 1
+        },
+        {
+          "xor": 221,
+          "count": 1
+        }
+      ],
+      "normalized_changed_count": 48,
+      "normalized_changed_regions": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2
+        }
+      ],
+      "normalized_changed_samples": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14,
+          "context_start": 66969,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 56 7b 72 72 71 1e 1e 1e 1e 1e 1e 1e 1e 1e e1 e1 e1 e1 78 42 e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........V{rrq.............xB.."
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2,
+          "context_start": 66987,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "1e 1e 1e 1e e1 e1 e1 e1 78 42 e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": "........xB........"
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14,
+          "context_start": 67641,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 3e 4b 50 57 4a 3e 57 5a 3e 2e 2e 2d 2f 1e e1 e1 e1 e1 1f b4 e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........>KPWJ>WZ>..-/........."
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2,
+          "context_start": 67659,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "2e 2d 2f 1e e1 e1 e1 e1 1f b4 e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": ".-/..............."
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14,
+          "context_start": 86169,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 59 71 71 7a 7c 67 7b 1e 1e 1e 1e 1e 1e 1e e1 e1 e1 e1 2e 5e e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........Yqqz|g{............^.."
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2,
+          "context_start": 86187,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "1e 1e 1e 1e e1 e1 e1 e1 2e 5e e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": ".........^........"
+        }
+      ],
+      "modified_profile": {
+        "unique": 252,
+        "zero": 72,
+        "ff": 26,
+        "printable": 14550,
+        "most_common": [
+          {
+            "byte": 167,
+            "count": 146062
+          },
+          {
+            "byte": 88,
+            "count": 5267
+          },
+          {
+            "byte": 120,
+            "count": 1198
+          },
+          {
+            "byte": 80,
+            "count": 897
+          },
+          {
+            "byte": 104,
+            "count": 639
+          },
+          {
+            "byte": 105,
+            "count": 594
+          },
+          {
+            "byte": 89,
+            "count": 545
+          },
+          {
+            "byte": 108,
+            "count": 511
+          },
+          {
+            "byte": 75,
+            "count": 429
+          },
+          {
+            "byte": 118,
+            "count": 424
+          },
+          {
+            "byte": 165,
+            "count": 419
+          },
+          {
+            "byte": 91,
+            "count": 367
+          }
+        ]
+      },
+      "normalized_profile": {
+        "unique": 252,
+        "zero": 14,
+        "ff": 8,
+        "printable": 10458,
+        "most_common": [
+          {
+            "byte": 225,
+            "count": 146062
+          },
+          {
+            "byte": 30,
+            "count": 5267
+          },
+          {
+            "byte": 62,
+            "count": 1198
+          },
+          {
+            "byte": 22,
+            "count": 897
+          },
+          {
+            "byte": 46,
+            "count": 639
+          },
+          {
+            "byte": 47,
+            "count": 594
+          },
+          {
+            "byte": 31,
+            "count": 545
+          },
+          {
+            "byte": 42,
+            "count": 511
+          },
+          {
+            "byte": 13,
+            "count": 429
+          },
+          {
+            "byte": 48,
+            "count": 424
+          },
+          {
+            "byte": 227,
+            "count": 419
+          },
+          {
+            "byte": 29,
+            "count": 367
+          }
+        ]
+      }
+    },
+    {
+      "modified": {
+        "path": "research/dattest4/Dattest4/Program6.dat",
+        "size": 168257,
+        "sha256": "dcc2f23c2923b75a8870bc692372c3d4016379f7efe690c5a689c659ef33f451"
+      },
+      "common_prefix_length": 64,
+      "common_suffix_length": 0,
+      "payload_start": 64,
+      "payload_length_compared": 168193,
+      "dominant_xor": 74,
+      "dominant_xor_count": 168129,
+      "dominant_xor_ratio": 0.9996194847585809,
+      "xor_counts_top": [
+        {
+          "xor": 74,
+          "count": 168129
+        },
+        {
+          "xor": 181,
+          "count": 18
+        },
+        {
+          "xor": 149,
+          "count": 5
+        },
+        {
+          "xor": 133,
+          "count": 5
+        },
+        {
+          "xor": 218,
+          "count": 3
+        },
+        {
+          "xor": 252,
+          "count": 3
+        },
+        {
+          "xor": 253,
+          "count": 2
+        },
+        {
+          "xor": 208,
+          "count": 2
+        },
+        {
+          "xor": 217,
+          "count": 2
+        },
+        {
+          "xor": 224,
+          "count": 2
+        },
+        {
+          "xor": 241,
+          "count": 2
+        },
+        {
+          "xor": 134,
+          "count": 2
+        },
+        {
+          "xor": 132,
+          "count": 2
+        },
+        {
+          "xor": 242,
+          "count": 2
+        },
+        {
+          "xor": 211,
+          "count": 1
+        },
+        {
+          "xor": 233,
+          "count": 1
+        },
+        {
+          "xor": 251,
+          "count": 1
+        },
+        {
+          "xor": 225,
+          "count": 1
+        },
+        {
+          "xor": 180,
+          "count": 1
+        },
+        {
+          "xor": 31,
+          "count": 1
+        }
+      ],
+      "xor_exception_count": 64,
+      "xor_exception_regions": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2
+        },
+        {
+          "start": 86849,
+          "end": 86862,
+          "length": 14
+        },
+        {
+          "start": 86867,
+          "end": 86868,
+          "length": 2
+        }
+      ],
+      "xor_exception_counts_top": [
+        {
+          "xor": 181,
+          "count": 18
+        },
+        {
+          "xor": 149,
+          "count": 5
+        },
+        {
+          "xor": 133,
+          "count": 5
+        },
+        {
+          "xor": 218,
+          "count": 3
+        },
+        {
+          "xor": 252,
+          "count": 3
+        },
+        {
+          "xor": 253,
+          "count": 2
+        },
+        {
+          "xor": 208,
+          "count": 2
+        },
+        {
+          "xor": 217,
+          "count": 2
+        },
+        {
+          "xor": 224,
+          "count": 2
+        },
+        {
+          "xor": 241,
+          "count": 2
+        },
+        {
+          "xor": 134,
+          "count": 2
+        },
+        {
+          "xor": 132,
+          "count": 2
+        },
+        {
+          "xor": 242,
+          "count": 2
+        },
+        {
+          "xor": 211,
+          "count": 1
+        },
+        {
+          "xor": 233,
+          "count": 1
+        },
+        {
+          "xor": 251,
+          "count": 1
+        },
+        {
+          "xor": 225,
+          "count": 1
+        },
+        {
+          "xor": 180,
+          "count": 1
+        },
+        {
+          "xor": 31,
+          "count": 1
+        },
+        {
+          "xor": 209,
+          "count": 1
+        }
+      ],
+      "normalized_changed_count": 64,
+      "normalized_changed_regions": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2
+        },
+        {
+          "start": 86849,
+          "end": 86862,
+          "length": 14
+        },
+        {
+          "start": 86867,
+          "end": 86868,
+          "length": 2
+        }
+      ],
+      "normalized_changed_samples": [
+        {
+          "start": 66977,
+          "end": 66990,
+          "length": 14,
+          "context_start": 66969,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 56 7b 72 72 71 1e 1e 1e 1e 1e 1e 1e 1e 1e e1 e1 e1 e1 78 42 e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........V{rrq.............xB.."
+        },
+        {
+          "start": 66995,
+          "end": 66996,
+          "length": 2,
+          "context_start": 66987,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "1e 1e 1e 1e e1 e1 e1 e1 78 42 e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": "........xB........"
+        },
+        {
+          "start": 67649,
+          "end": 67662,
+          "length": 14,
+          "context_start": 67641,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 3e 4b 50 57 4a 3e 57 5a 3e 2e 2e 2d 2f 1e e1 e1 e1 e1 1f b4 e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........>KPWJ>WZ>..-/........."
+        },
+        {
+          "start": 67667,
+          "end": 67668,
+          "length": 2,
+          "context_start": 67659,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "2e 2d 2f 1e e1 e1 e1 e1 1f b4 e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": ".-/..............."
+        },
+        {
+          "start": 86177,
+          "end": 86190,
+          "length": 14,
+          "context_start": 86169,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 59 71 71 7a 7c 67 7b 1e 1e 1e 1e 1e 1e 1e e1 e1 e1 e1 2e 5e e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........Yqqz|g{............^.."
+        },
+        {
+          "start": 86195,
+          "end": 86196,
+          "length": 2,
+          "context_start": 86187,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "1e 1e 1e 1e e1 e1 e1 e1 2e 5e e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": ".........^........"
+        },
+        {
+          "start": 86849,
+          "end": 86862,
+          "length": 14,
+          "context_start": 86841,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "e1 e1 e1 e1 e1 e1 e1 e1 59 4c 51 4b 4e 3e 57 5a 3e 2e 2e 2d 2f 1e e1 e1 e1 e1 56 22 e1 e1",
+          "before_ascii": "..............................",
+          "after_ascii": "........YLQKN>WZ>..-/.....V\".."
+        },
+        {
+          "start": 86867,
+          "end": 86868,
+          "length": 2,
+          "context_start": 86859,
+          "before_hex": "e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1 e1",
+          "after_hex": "2e 2d 2f 1e e1 e1 e1 e1 56 22 e1 e1 e1 e1 e1 e1 e1 e1",
+          "before_ascii": "..................",
+          "after_ascii": ".-/.....V\"........"
+        }
+      ],
+      "modified_profile": {
+        "unique": 252,
+        "zero": 255,
+        "ff": 38,
+        "printable": 14544,
+        "most_common": [
+          {
+            "byte": 171,
+            "count": 146046
+          },
+          {
+            "byte": 84,
+            "count": 5268
+          },
+          {
+            "byte": 116,
+            "count": 1200
+          },
+          {
+            "byte": 92,
+            "count": 897
+          },
+          {
+            "byte": 100,
+            "count": 641
+          },
+          {
+            "byte": 101,
+            "count": 595
+          },
+          {
+            "byte": 85,
+            "count": 545
+          },
+          {
+            "byte": 96,
+            "count": 511
+          },
+          {
+            "byte": 71,
+            "count": 429
+          },
+          {
+            "byte": 122,
+            "count": 424
+          },
+          {
+            "byte": 169,
+            "count": 419
+          },
+          {
+            "byte": 87,
+            "count": 367
+          }
+        ]
+      },
+      "normalized_profile": {
+        "unique": 252,
+        "zero": 14,
+        "ff": 8,
+        "printable": 10473,
+        "most_common": [
+          {
+            "byte": 225,
+            "count": 146046
+          },
+          {
+            "byte": 30,
+            "count": 5268
+          },
+          {
+            "byte": 62,
+            "count": 1200
+          },
+          {
+            "byte": 22,
+            "count": 897
+          },
+          {
+            "byte": 46,
+            "count": 641
+          },
+          {
+            "byte": 47,
+            "count": 595
+          },
+          {
+            "byte": 31,
+            "count": 545
+          },
+          {
+            "byte": 42,
+            "count": 511
+          },
+          {
+            "byte": 13,
+            "count": 429
+          },
+          {
+            "byte": 48,
+            "count": 424
+          },
+          {
+            "byte": 227,
+            "count": 419
+          },
+          {
+            "byte": 29,
+            "count": 367
+          }
+        ]
+      }
+    }
+  ]
+}

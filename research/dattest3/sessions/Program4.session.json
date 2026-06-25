@@ -1,0 +1,437 @@
+{
+  "schema": "kpg111-helper.compare-session.v1",
+  "created_utc": "2026-06-25T00:22:49.866894+00:00",
+  "baseline": {
+    "path": "research/dattest3/Dattest3/Program.dat",
+    "size": 168257,
+    "sha256": "c73e0cb6bcbff5765e90ceb4fcf856cb7e8088587a8deb4412b5b57868ee0cf5",
+    "md5": "ce032e3fdd14269ab43be8d03fc392fd"
+  },
+  "modified": {
+    "path": "research/dattest3/Dattest3/Program4.dat",
+    "size": 168257,
+    "sha256": "c91e938bf7aead1c8c7d21f5c49a8845031c3a3ba490abfaffafd565f46e81f3",
+    "md5": "f4525d0e26fa3189e9204db5b790a0ae"
+  },
+  "size_change": 0,
+  "changed_offsets": [
+    66977,
+    66978,
+    66979,
+    66980,
+    66981,
+    66982,
+    66983,
+    66984,
+    66985,
+    66986,
+    66987,
+    66988,
+    66989,
+    66995,
+    66996,
+    67137,
+    67138,
+    67139,
+    67140,
+    67141,
+    67142,
+    67143,
+    67144,
+    67145,
+    67146,
+    67147,
+    67148,
+    67149,
+    67155,
+    86177,
+    86178,
+    86180,
+    86181,
+    86182,
+    86183,
+    86184,
+    86185,
+    86186,
+    86187,
+    86195,
+    86196,
+    86337,
+    86338,
+    86339,
+    86340,
+    86341,
+    86342,
+    86343,
+    86344,
+    86345,
+    86346,
+    86347,
+    86355
+  ],
+  "changed_regions": [
+    {
+      "start": 66977,
+      "end": 66989,
+      "length": 13
+    },
+    {
+      "start": 66995,
+      "end": 66996,
+      "length": 2
+    },
+    {
+      "start": 67137,
+      "end": 67149,
+      "length": 13
+    },
+    {
+      "start": 67155,
+      "end": 67155,
+      "length": 1
+    },
+    {
+      "start": 86177,
+      "end": 86178,
+      "length": 2
+    },
+    {
+      "start": 86180,
+      "end": 86187,
+      "length": 8
+    },
+    {
+      "start": 86195,
+      "end": 86196,
+      "length": 2
+    },
+    {
+      "start": 86337,
+      "end": 86347,
+      "length": 11
+    },
+    {
+      "start": 86355,
+      "end": 86355,
+      "length": 1
+    }
+  ],
+  "changed_bytes": [
+    {
+      "offset": 66977,
+      "before": "55",
+      "after": "57"
+    },
+    {
+      "offset": 66978,
+      "before": "7e",
+      "after": "7a"
+    },
+    {
+      "offset": 66979,
+      "before": "72",
+      "after": "73"
+    },
+    {
+      "offset": 66980,
+      "before": "76",
+      "after": "73"
+    },
+    {
+      "offset": 66981,
+      "before": "7a",
+      "after": "70"
+    },
+    {
+      "offset": 66982,
+      "before": "33",
+      "after": "1f"
+    },
+    {
+      "offset": 66983,
+      "before": "3f",
+      "after": "1f"
+    },
+    {
+      "offset": 66984,
+      "before": "54",
+      "after": "1f"
+    },
+    {
+      "offset": 66985,
+      "before": "4e",
+      "after": "1f"
+    },
+    {
+      "offset": 66986,
+      "before": "2e",
+      "after": "1f"
+    },
+    {
+      "offset": 66987,
+      "before": "4a",
+      "after": "1f"
+    },
+    {
+      "offset": 66988,
+      "before": "4c",
+      "after": "1f"
+    },
+    {
+      "offset": 66989,
+      "before": "5e",
+      "after": "1f"
+    },
+    {
+      "offset": 66995,
+      "before": "95",
+      "after": "79"
+    },
+    {
+      "offset": 66996,
+      "before": "09",
+      "after": "43"
+    },
+    {
+      "offset": 67137,
+      "before": "56",
+      "after": "53"
+    },
+    {
+      "offset": 67138,
+      "before": "5b",
+      "after": "70"
+    },
+    {
+      "offset": 67139,
+      "before": "40",
+      "after": "71"
+    },
+    {
+      "offset": 67140,
+      "before": "4b",
+      "after": "78"
+    },
+    {
+      "offset": 67141,
+      "before": "7a",
+      "after": "3f"
+    },
+    {
+      "offset": 67142,
+      "before": "6c",
+      "after": "58"
+    },
+    {
+      "offset": 67143,
+      "before": "6b",
+      "after": "70"
+    },
+    {
+      "offset": 67144,
+      "before": "40",
+      "after": "71"
+    },
+    {
+      "offset": 67145,
+      "before": "29",
+      "after": "7a"
+    },
+    {
+      "offset": 67146,
+      "before": "2a",
+      "after": "1f"
+    },
+    {
+      "offset": 67147,
+      "before": "2a",
+      "after": "1f"
+    },
+    {
+      "offset": 67148,
+      "before": "2e",
+      "after": "1f"
+    },
+    {
+      "offset": 67149,
+      "before": "26",
+      "after": "1f"
+    },
+    {
+      "offset": 67155,
+      "before": "f0",
+      "after": "f1"
+    },
+    {
+      "offset": 86177,
+      "before": "4c",
+      "after": "58"
+    },
+    {
+      "offset": 86178,
+      "before": "7c",
+      "after": "70"
+    },
+    {
+      "offset": 86180,
+      "before": "6b",
+      "after": "7b"
+    },
+    {
+      "offset": 86181,
+      "before": "73",
+      "after": "7d"
+    },
+    {
+      "offset": 86182,
+      "before": "7e",
+      "after": "66"
+    },
+    {
+      "offset": 86183,
+      "before": "71",
+      "after": "7a"
+    },
+    {
+      "offset": 86184,
+      "before": "7b",
+      "after": "1f"
+    },
+    {
+      "offset": 86185,
+      "before": "3f",
+      "after": "1f"
+    },
+    {
+      "offset": 86186,
+      "before": "4b",
+      "after": "1f"
+    },
+    {
+      "offset": 86187,
+      "before": "58",
+      "after": "1f"
+    },
+    {
+      "offset": 86195,
+      "before": "e0",
+      "after": "2f"
+    },
+    {
+      "offset": 86196,
+      "before": "44",
+      "after": "5f"
+    },
+    {
+      "offset": 86337,
+      "before": "4a",
+      "after": "57"
+    },
+    {
+      "offset": 86338,
+      "before": "6b",
+      "after": "70"
+    },
+    {
+      "offset": 86339,
+      "before": "7e",
+      "after": "6b"
+    },
+    {
+      "offset": 86340,
+      "before": "77",
+      "after": "3f"
+    },
+    {
+      "offset": 86341,
+      "before": "3f",
+      "after": "71"
+    },
+    {
+      "offset": 86342,
+      "before": "5b",
+      "after": "3f"
+    },
+    {
+      "offset": 86343,
+      "before": "4d",
+      "after": "4c"
+    },
+    {
+      "offset": 86344,
+      "before": "51",
+      "after": "7a"
+    },
+    {
+      "offset": 86345,
+      "before": "3f",
+      "after": "67"
+    },
+    {
+      "offset": 86346,
+      "before": "2f",
+      "after": "66"
+    },
+    {
+      "offset": 86347,
+      "before": "2f",
+      "after": "1f"
+    },
+    {
+      "offset": 86355,
+      "before": "1d",
+      "after": "1c"
+    }
+  ],
+  "entropy_comparison": {
+    "block_size": 256,
+    "whole_file": {
+      "baseline": 1.316393,
+      "modified": 1.315991,
+      "delta": -0.000402
+    },
+    "changed_blocks": [
+      {
+        "start": 66816,
+        "end": 67071,
+        "before_entropy": 3.578943,
+        "after_entropy": 3.466345,
+        "delta": -0.112598
+      },
+      {
+        "start": 67072,
+        "end": 67327,
+        "before_entropy": 3.520278,
+        "after_entropy": 3.4686,
+        "delta": -0.051679
+      },
+      {
+        "start": 86016,
+        "end": 86271,
+        "before_entropy": 3.478757,
+        "after_entropy": 3.474545,
+        "delta": -0.004212
+      },
+      {
+        "start": 86272,
+        "end": 86527,
+        "before_entropy": 3.45131,
+        "after_entropy": 3.468775,
+        "delta": 0.017465
+      }
+    ]
+  },
+  "strings_added": [
+    "Spqx?Xpqz",
+    "Wpk?q?Lzgf",
+    "Wzssp",
+    "Xpp{}fz"
+  ],
+  "strings_removed": [
+    "Jk~w?[MQ?//",
+    "L|pks~q{?KX",
+    "U~rvz3?TN.JL^",
+    "V[@Kzlk@)**.&"
+  ],
+  "notes": "Read-only comparison data. No field meanings are inferred."
+}

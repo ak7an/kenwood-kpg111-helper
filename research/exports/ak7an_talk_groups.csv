@@ -1,0 +1,18 @@
+table_id,slot,offset_hex,name,numeric_id,empty
+talk_groups,0,0x00014f80,World Wide TG,65000,False
+talk_groups,1,0x00014fa0,Parrot,10,False
+talk_groups,2,0x00014fc0,Colo Fun Mach,31081,False
+talk_groups,3,0x00014fe0,MO Digi Call,31947,False
+talk_groups,4,0x00015000,AlabamaLink TG,31010,False
+talk_groups,5,0x00015020,SW Missouri TG,31291,False
+talk_groups,6,0x00015040,PiStar TG,31672,False
+talk_groups,7,0x00015060,VK Radio TG,50535,False
+talk_groups,8,0x00015080,NXDN N America,10200,False
+talk_groups,9,0x000150a0,Scotland TG,23551,False
+talk_groups,10,0x000150c0,Utah DRN 01,31491,False
+talk_groups,11,0x000150e0,Utah DRN 05,31495,False
+talk_groups,12,0x00015100,PA7LIM TG,20424,False
+talk_groups,13,0x00015120,Disconnect TG,9999,False
+talk_groups,14,0x00015140,Utah DRN 00,31490,False
+talk_groups,15,0x00015160,Lookout Mtn TG,43389,False
+talk_groups,16,0x00015180,AK7AN TG,21277,False
