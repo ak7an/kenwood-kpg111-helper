@@ -168,6 +168,119 @@ class WriterTests(unittest.TestCase):
             self.assertIn("refusing to overwrite input file", result.stderr)
             self.assertEqual(input_path.read_bytes(), FIXTURE.read_bytes())
 
+    def test_cli_row_2_edits_same_bytes_as_slot_1(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            slot_output = Path(tmp) / "slot.dat"
+            row_output = Path(tmp) / "row.dat"
+
+            slot_result = self._run_cli(
+                slot_output,
+                "--table",
+                "talk_groups",
+                "--slot",
+                "1",
+                "--name",
+                "TEST TG",
+            )
+            row_result = self._run_cli(
+                row_output,
+                "--table",
+                "talk_groups",
+                "--row",
+                "2",
+                "--name",
+                "TEST TG",
+            )
+
+            self.assertEqual(slot_result.returncode, 0, slot_result.stdout + slot_result.stderr)
+            self.assertEqual(row_result.returncode, 0, row_result.stdout + row_result.stderr)
+            self.assertEqual(row_output.read_bytes(), slot_output.read_bytes())
+            self.assertIn("Row: 2", row_result.stdout)
+            self.assertIn("Slot: 1", row_result.stdout)
+
+    def test_cli_row_1_maps_to_slot_0(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "row1.dat"
+
+            result = self._run_cli(
+                output,
+                "--table",
+                "talk_groups",
+                "--row",
+                "1",
+                "--name",
+                "TEST TG",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Row: 1", result.stdout)
+            self.assertIn("Slot: 0", result.stdout)
+            self.assertIn("Record offset: 0x00014f80", result.stdout)
+
+    def test_cli_row_zero_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self._run_cli(
+                Path(tmp) / "out.dat",
+                "--table",
+                "talk_groups",
+                "--row",
+                "0",
+                "--name",
+                "TEST TG",
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("--row must be >= 1", result.stderr)
+
+    def test_cli_using_both_row_and_slot_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self._run_cli(
+                Path(tmp) / "out.dat",
+                "--table",
+                "talk_groups",
+                "--row",
+                "2",
+                "--slot",
+                "1",
+                "--name",
+                "TEST TG",
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("provide exactly one of --slot or --row, not both", result.stderr)
+
+    def test_cli_using_neither_row_nor_slot_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self._run_cli(
+                Path(tmp) / "out.dat",
+                "--table",
+                "talk_groups",
+                "--name",
+                "TEST TG",
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("provide exactly one of --slot or --row", result.stderr)
+
+    def test_cli_existing_slot_behavior_still_works(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "slot.dat"
+
+            result = self._run_cli(
+                output,
+                "--table",
+                "talk_groups",
+                "--slot",
+                "1",
+                "--id",
+                "12345",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue(output.exists())
+            self.assertIn("Row: 2", result.stdout)
+            self.assertIn("Slot: 1", result.stdout)
+
     @staticmethod
     def _changed_offsets(original: bytes, candidate: bytes) -> set[int]:
         return {
@@ -175,6 +288,21 @@ class WriterTests(unittest.TestCase):
             for offset, (left, right) in enumerate(zip(original, candidate))
             if left != right
         }
+
+    @staticmethod
+    def _run_cli(output: Path, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(TOOL),
+                str(FIXTURE),
+                str(output),
+                *args,
+            ],
+            check=False,
+            text=True,
+            capture_output=True,
+        )
 
 
 if __name__ == "__main__":

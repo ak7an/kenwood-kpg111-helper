@@ -31,7 +31,8 @@ def parse_args() -> argparse.Namespace:
         choices=("talk_groups", "individual_ids"),
         help="Decoded table containing the target record",
     )
-    parser.add_argument("--slot", required=True, type=int, help="Decoded table slot to edit")
+    parser.add_argument("--slot", type=int, help="Zero-based decoded internal slot to edit")
+    parser.add_argument("--row", type=int, help="One-based KPG-111D displayed row number to edit")
     parser.add_argument("--name", help="New record name, 14 ASCII bytes or fewer")
     parser.add_argument("--id", type=int, help="New numeric ID, 1 through 65519")
     parser.add_argument(
@@ -71,6 +72,22 @@ def print_changed_ranges(ranges: list[ByteRange]) -> None:
         print(f"- {render_range(changed_range)} ({changed_range.length} bytes)")
 
 
+def resolve_slot(slot: int | None, row: int | None) -> tuple[int, int]:
+    if slot is not None and row is not None:
+        raise WriterError("provide exactly one of --slot or --row, not both")
+    if slot is None and row is None:
+        raise WriterError("provide exactly one of --slot or --row")
+    if slot is not None:
+        if slot < 0:
+            raise WriterError("--slot must be >= 0")
+        return slot, slot + 1
+    if row is None:
+        raise WriterError("provide exactly one of --slot or --row")
+    if row < 1:
+        raise WriterError("--row must be >= 1")
+    return row - 1, row
+
+
 def main() -> int:
     args = parse_args()
     try:
@@ -80,12 +97,13 @@ def main() -> int:
         original = load_dat(args.input_dat)
         if args.name is None and args.id is None:
             raise WriterError("at least one of --name or --id is required")
+        slot, row = resolve_slot(args.slot, args.row)
 
         result = edit_record(
             original,
             args.decode_key,
             args.table,
-            args.slot,
+            slot,
             name=args.name,
             numeric_id=args.id,
         )
@@ -102,7 +120,8 @@ def main() -> int:
         print(f"Input: {args.input_dat}")
         print(f"Output: {args.output_dat}")
         print(f"Table: {args.table}")
-        print(f"Slot: {args.slot}")
+        print(f"Row: {row}")
+        print(f"Slot: {slot}")
         print(f"Record offset: 0x{result.record_offset:08x}")
         print_changed_ranges(result.changed_ranges)
         return 0

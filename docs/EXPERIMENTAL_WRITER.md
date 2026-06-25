@@ -38,12 +38,17 @@ pass.
 
 ## Example
 
+KPG-111D displays record rows starting at `1` in its `No.` column. The writer
+library uses internal zero-based slots. Humans should normally use `--row` with
+the CLI so the number matches KPG-111D. The older `--slot` option is retained
+for advanced/internal testing and remains zero-based.
+
 ```bash
-python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --name "TEST TG"
-python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --slot 1 --name "TEST ID"
-python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --id 12345
-python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --slot 1 --id 12345
-python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --slot 1 --name "TEST TG" --id 12345
+python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --row 2 --name "TEST TG"
+python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --row 2 --name "TEST ID"
+python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --row 2 --id 12345
+python3 tools/dat_edit_record.py input.dat output.dat --table individual_ids --row 2 --id 12345
+python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --row 2 --name "TEST TG" --id 12345
 ```
 
 The tool prints the exact byte ranges changed and verifies that the output
