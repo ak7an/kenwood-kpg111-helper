@@ -2,9 +2,10 @@
 
 Safe analysis tools for researching Kenwood KPG111 `Program.dat` files.
 
-This project is intentionally read-only for binary `.dat` files. It does not
-write, patch, merge, or generate KPG111 data files yet. The first goal is to
-collect evidence about the file format before any writer is implemented.
+This project is intentionally read-only for KPG111 fields inside binary `.dat`
+files. It does not patch, merge, or generate edited KPG111 data files yet. The
+first goal is to collect evidence about the file format before any field-level
+writer is implemented.
 
 ## Tools
 
@@ -24,6 +25,9 @@ collect evidence about the file format before any writer is implemented.
   divisors, alignment histograms, and record-size candidates.
 - `tools/csv_validate.py` validates Talk Group and Individual ID CSV files with
   the required columns `type,name,id`.
+- `tools/dat_roundtrip_check.py` parses a `.dat` file with the existing project
+  code, writes an unchanged byte-preserving copy, and verifies that the copy is
+  byte-for-byte identical to the input.
 
 ## CSV Format
 
@@ -99,6 +103,17 @@ Optional stricter duplicate checks:
 python3 tools/csv_validate.py --unique-ids talkgroups.csv individual_ids.csv
 python3 tools/csv_validate.py --unique-names talkgroups.csv individual_ids.csv
 ```
+
+Run a byte-for-byte round-trip safety check:
+
+```bash
+python3 tools/dat_roundtrip_check.py Program.dat --decode-key 0x5b
+python3 tools/dat_roundtrip_check.py Program.dat --decode-key 0x5b --output roundtrip.dat
+```
+
+Round-trip validation is the safety foundation before any future field-level
+editing. An unchanged file must parse, serialize through the project, and match
+the original bytes exactly before edited output can be considered.
 
 ## Research Workflow
 

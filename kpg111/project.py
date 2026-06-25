@@ -17,6 +17,7 @@ class KPG111Project:
 
     def __init__(self) -> None:
         self.program_path: Path | None = None
+        self.raw_bytes: bytes | None = None
         self.decode_key: int | None = None
         self.tables: ProgramTables | None = None
         self.import_records: list[ImportRecord] = []
@@ -24,6 +25,7 @@ class KPG111Project:
 
     def load_program(self, path: Path | str, decode_key: int) -> "KPG111Project":
         self.program_path = Path(path)
+        self.raw_bytes = self.program_path.read_bytes()
         self.decode_key = decode_key
         self.tables = decode_program_tables(self.program_path, decode_key, include_empty=True)
         self.latest_merge_plan = None
@@ -58,6 +60,23 @@ class KPG111Project:
     ) -> dict[str, Path]:
         self._require_tables()
         return export_tables(self.tables, out_dir, prefix=prefix, include_empty=include_empty)
+
+    def to_bytes(self) -> bytes:
+        """Return the original DAT bytes unchanged.
+
+        This is no-op serialization for round-trip safety checks. It is not a
+        field encoder and does not apply planned edits.
+        """
+        self._require_program()
+        if self.raw_bytes is None:
+            raise RuntimeError("program bytes have not been loaded")
+        return self.raw_bytes
+
+    def write_bytes(self, path: Path | str) -> Path:
+        """Write the original DAT bytes unchanged to a new path."""
+        output = Path(path)
+        output.write_bytes(self.to_bytes())
+        return output
 
     def table_summary(self) -> dict[str, dict[str, int | str | None]]:
         self._require_tables()
