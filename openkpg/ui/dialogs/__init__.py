@@ -1,0 +1,1 @@
+"""OpenKPG dialog placeholders."""
