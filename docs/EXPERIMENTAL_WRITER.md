@@ -53,3 +53,28 @@ python3 tools/dat_edit_record.py input.dat output.dat --table talk_groups --row 
 
 The tool prints the exact byte ranges changed and verifies that the output
 differs only in those ranges.
+
+## CSV Workflow
+
+Export the records you want to edit:
+
+```bash
+python3 tools/dat_export_records.py input.dat --table talk_groups --output talkgroups.csv
+python3 tools/dat_export_records.py input.dat --table individual_ids --output ids.csv
+```
+
+Edit the CSV values in the `name` and/or `id` columns. Keep `row` when editing
+from the KPG-111D visible `No.` column. `slot` is zero-based and is intended for
+advanced/internal checks.
+
+Import the edited CSV into a copy of the DAT:
+
+```bash
+python3 tools/dat_import_records.py input.dat edited.dat --table talk_groups --csv talkgroups.csv
+python3 tools/dat_import_records.py input.dat edited.dat --table individual_ids --csv ids.csv
+```
+
+The import tool uses the experimental writer for every row, preserves unknown
+bytes, and prints the exact changed byte ranges. Validate the edited DAT in
+KPG-111D before any radio use. Never write directly to a radio until KPG-111D
+opens the edited file successfully.
