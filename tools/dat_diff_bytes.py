@@ -30,6 +30,7 @@ CSV_FIELDNAMES = [
     "after_xor_text",
     "notes",
 ]
+DEFAULT_PREVIEW_CHARS = 64
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,12 @@ def parse_args() -> argparse.Namespace:
         help="Maximum changed ranges to display (default: no limit)",
     )
     parser.add_argument("--csv", type=Path, help="Optional CSV report path")
+    parser.add_argument(
+        "--preview-chars",
+        type=int,
+        default=DEFAULT_PREVIEW_CHARS,
+        help="Maximum characters for each console preview field (default: 64)",
+    )
     return parser.parse_args()
 
 
@@ -104,6 +111,12 @@ def hex_bytes(data: bytes) -> str:
 def xor_text_preview(data: bytes, decode_key: int) -> str:
     decoded = xor_bytes(data, decode_key)
     return "".join(chr(byte) if 32 <= byte <= 126 else "." for byte in decoded)
+
+
+def console_preview(value: str, source_bytes: int, preview_chars: int) -> str:
+    if len(value) <= preview_chars:
+        return value
+    return f"{value[:preview_chars]}... (truncated, {source_bytes} bytes)"
 
 
 def bounded_range(data: bytes, changed: ChangedRange, context: int) -> tuple[int, int]:
@@ -205,8 +218,10 @@ def render_report(
     ranges: list[ChangedRange],
     context: int,
     max_ranges: int | None,
+    preview_chars: int,
 ) -> str:
     displayed_rows = rows if max_ranges is None else rows[:max_ranges]
+    displayed_ranges = ranges if max_ranges is None else ranges[:max_ranges]
     lines = [
         "DAT Byte Diff Report",
         f"Before: {before_path}",
@@ -220,20 +235,26 @@ def render_report(
         return "\n".join(lines)
 
     lines.append("")
-    for row, changed in zip(displayed_rows, ranges):
+    for row, changed in zip(displayed_rows, displayed_ranges):
         context_start, context_end = bounded_range(before, changed, context)
         before_context = before[context_start : context_end + 1]
         after_context = after[context_start : context_end + 1]
+        before_hex = console_preview(str(row["before_hex"]), changed.length, preview_chars)
+        after_hex = console_preview(str(row["after_hex"]), changed.length, preview_chars)
+        before_text = console_preview(str(row["before_xor_text"]), changed.length, preview_chars)
+        after_text = console_preview(str(row["after_xor_text"]), changed.length, preview_chars)
+        before_context_hex = console_preview(hex_bytes(before_context), len(before_context), preview_chars)
+        after_context_hex = console_preview(hex_bytes(after_context), len(after_context), preview_chars)
         lines.extend(
             [
                 f"Range {row['range']}: {row['start']}-{row['end']} length={row['length']}",
-                f"  before hex: {row['before_hex']}",
-                f"  after hex:  {row['after_hex']}",
-                f"  before XOR text: {row['before_xor_text']!r}",
-                f"  after XOR text:  {row['after_xor_text']!r}",
+                f"  before hex: {before_hex}",
+                f"  after hex:  {after_hex}",
+                f"  before XOR text: {before_text!r}",
+                f"  after XOR text:  {after_text!r}",
                 f"  context: 0x{context_start:08x}-0x{context_end:08x}",
-                f"    before: {hex_bytes(before_context)}",
-                f"    after:  {hex_bytes(after_context)}",
+                f"    before: {before_context_hex}",
+                f"    after:  {after_context_hex}",
                 f"  nearby known region: {row['notes']}",
             ]
         )
@@ -242,17 +263,19 @@ def render_report(
     return "\n".join(lines)
 
 
-def validate_args(context: int, max_ranges: int | None) -> None:
+def validate_args(context: int, max_ranges: int | None, preview_chars: int) -> None:
     if context < 0:
         raise ValueError("--context must be >= 0")
     if max_ranges is not None and max_ranges < 0:
         raise ValueError("--max-ranges must be >= 0")
+    if preview_chars < 1:
+        raise ValueError("--preview-chars must be >= 1")
 
 
 def main() -> int:
     args = parse_args()
     try:
-        validate_args(args.context, args.max_ranges)
+        validate_args(args.context, args.max_ranges, args.preview_chars)
         before = args.before.read_bytes()
         after = args.after.read_bytes()
         if len(before) != len(after):
@@ -275,6 +298,7 @@ def main() -> int:
                 ranges,
                 args.context,
                 args.max_ranges,
+                args.preview_chars,
             )
         )
         return 0

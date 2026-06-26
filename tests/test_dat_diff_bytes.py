@@ -64,6 +64,42 @@ class DatDiffBytesTests(unittest.TestCase):
                 reader = csv.reader(handle)
                 self.assertEqual(next(reader), CSV_FIELDNAMES)
 
+    def test_large_changed_range_does_not_produce_excessive_stdout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            before = self._write_bytes(Path(tmp) / "before.dat", b"\x00" * 4096)
+            after = self._write_bytes(Path(tmp) / "after.dat", b"\xbe" * 4096)
+
+            result = self._run_tool(before, after, "--context", "0")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertLess(len(result.stdout), 1500)
+            self.assertIn("truncated, 4096 bytes", result.stdout)
+
+    def test_max_ranges_one_prints_only_one_rendered_range(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            before = self._write_bytes(Path(tmp) / "before.dat", b"abcdefghi")
+            after = self._write_bytes(Path(tmp) / "after.dat", b"aXcYeZghi")
+
+            result = self._run_tool(before, after, "--max-ranges", "1", "--context", "0")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Range 1:", result.stdout)
+            self.assertNotIn("Range 2:", result.stdout)
+            self.assertIn("... 2 more ranges not shown", result.stdout)
+
+    def test_csv_header_stable_with_large_range(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            before = self._write_bytes(Path(tmp) / "before.dat", b"\x00" * 256)
+            after = self._write_bytes(Path(tmp) / "after.dat", b"\xbe" * 256)
+            output = Path(tmp) / "diff.csv"
+
+            result = self._run_tool(before, after, "--csv", str(output))
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            with output.open(newline="", encoding="utf-8") as handle:
+                reader = csv.reader(handle)
+                self.assertEqual(next(reader), CSV_FIELDNAMES)
+
     def test_known_tg_table_overlap_is_identified(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             data = bytearray(b"\x5b" * (TALK_GROUP_TABLE_START + 64))
