@@ -7,7 +7,11 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from openkpg.dat.frequency import decode_frequency_low24
+from openkpg.dat.frequency import (
+    decode_frequency_low24,
+    format_frequency_mhz,
+    reconstruct_frequency,
+)
 
 
 DAT_HEADER_SIZE = 0x40
@@ -24,12 +28,15 @@ CHANNEL_TX_OFFSET = 0x09
 CHANNEL_MARKER_08_OFFSET = 0x08
 CHANNEL_MARKER_0C_OFFSET = 0x0C
 CHANNEL_FREQUENCY_SIZE = 3
+CHANNEL_DISPLAY_FREQUENCY_CANDIDATES = ((144_000_000, 148_000_000),)
 
 
 @dataclass(frozen=True)
 class ChannelRecordRow:
     channel: int
     offset: int
+    rx_frequency: str
+    tx_frequency: str
     rx_bytes: str
     tx_bytes: str
     rx_low24_decoded: str
@@ -100,6 +107,23 @@ def format_hex_bytes(data: bytes) -> str:
 
 def format_frequency_low24(raw: bytes) -> str:
     return str(decode_frequency_low24(raw))
+
+
+def format_frequency_low24_hex(low24: int) -> str:
+    return f"0x{low24:06x}"
+
+
+def decoded_frequency_display(
+    raw: bytes,
+    candidates: tuple[tuple[int, int], ...] = CHANNEL_DISPLAY_FREQUENCY_CANDIDATES,
+    include_mhz_suffix: bool = False,
+) -> str:
+    low24 = decode_frequency_low24(raw)
+    reconstructed = reconstruct_frequency(low24, candidates)
+    if reconstructed is None:
+        return f"Unknown band\nLow24 = {format_frequency_low24_hex(low24)}"
+    suffix = " MHz" if include_mhz_suffix else ""
+    return f"{format_frequency_mhz(reconstructed)}{suffix}"
 
 
 def format_bytes(data: bytes) -> str:
@@ -271,6 +295,8 @@ def channel_row_model(
             ChannelRecordRow(
                 channel=index + 1,
                 offset=offset,
+                rx_frequency=decoded_frequency_display(normalized_rx_frequency_bytes),
+                tx_frequency=decoded_frequency_display(normalized_tx_frequency_bytes),
                 rx_bytes=format_hex_bytes(rx_frequency_bytes),
                 tx_bytes=format_hex_bytes(tx_frequency_bytes),
                 rx_low24_decoded=format_frequency_low24(normalized_rx_frequency_bytes),

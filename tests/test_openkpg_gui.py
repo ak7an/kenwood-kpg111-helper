@@ -66,10 +66,11 @@ class OpenKPGGuiTests(unittest.TestCase):
 
     def test_extract_channel_records_reads_experimental_raw_fields(self) -> None:
         module = importlib.import_module("openkpg.gui.helpers")
+        frequency = importlib.import_module("openkpg.dat.frequency")
         data = bytearray(b"\x00" * 0x100)
-        data[0x45:0x48] = b"\x01\x02\x03"
+        data[0x45:0x48] = frequency.encode_frequency_hz(146_520_000)
         data[0x48] = 0x99
-        data[0x49:0x4C] = b"\x04\x05\x06"
+        data[0x49:0x4C] = frequency.encode_frequency_hz(146_000_000)
         data[0x4C] = 0x88
         data[0x85:0x88] = b"\x07\x08\x09"
         data[0x89:0x8C] = b"\x0a\x0b\x0c"
@@ -79,8 +80,10 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0].channel, 1)
         self.assertEqual(rows[0].offset, 0x40)
-        self.assertEqual(rows[0].rx_bytes, "01 02 03")
-        self.assertEqual(rows[0].tx_bytes, "04 05 06")
+        self.assertEqual(rows[0].rx_frequency, "146.520")
+        self.assertEqual(rows[0].tx_frequency, "146.000")
+        self.assertEqual(rows[0].rx_bytes, "81 f6 fa")
+        self.assertEqual(rows[0].tx_bytes, "c1 89 f2")
         self.assertEqual(rows[0].marker_08, "99")
         self.assertEqual(rows[0].marker_0c, "88")
         self.assertEqual(rows[0].raw_record, bytes(data[0x40:0x80]))
@@ -133,15 +136,18 @@ class OpenKPGGuiTests(unittest.TestCase):
     def test_channel_records_include_normalized_record_bytes(self) -> None:
         module = importlib.import_module("openkpg.gui.helpers")
         frequency = importlib.import_module("openkpg.dat.frequency")
-        data = bytes(range(0x40))
+        data = bytearray(bytes(range(0x40)))
+        encoded = frequency.encode_frequency_hz(146_520_000)
+        data[0x05:0x08] = bytes(byte ^ 0xFF for byte in encoded)
 
-        rows = module.extract_channel_records(data, start=0, stride=0x40, count=1, xor_mask=0xFF)
+        rows = module.extract_channel_records(bytes(data), start=0, stride=0x40, count=1, xor_mask=0xFF)
 
         self.assertEqual(rows[0].raw_record[:4], b"\x00\x01\x02\x03")
         self.assertEqual(rows[0].normalized_record[:4], b"\xff\xfe\xfd\xfc")
+        self.assertEqual(rows[0].rx_frequency, "146.520")
         self.assertEqual(
             rows[0].rx_low24_decoded,
-            str(frequency.decode_frequency_low24(bytes.fromhex("fa f9 f8"))),
+            str(frequency.decode_frequency_low24(encoded)),
         )
 
     def test_format_record_hex_uses_16_byte_rows(self) -> None:
@@ -370,7 +376,11 @@ class OpenKPGGuiTests(unittest.TestCase):
     def test_property_model_generation(self) -> None:
         helpers = importlib.import_module("openkpg.gui.helpers")
         inspector = importlib.import_module("openkpg.gui.property_inspector")
-        row = helpers.extract_channel_records(bytes(range(0x40)), start=0, stride=0x40, count=1)[0]
+        frequency = importlib.import_module("openkpg.dat.frequency")
+        data = bytearray(bytes(range(0x40)))
+        data[0x05:0x08] = frequency.encode_frequency_hz(146_520_000)
+        data[0x09:0x0c] = frequency.encode_frequency_hz(146_000_000)
+        row = helpers.extract_channel_records(bytes(data), start=0, stride=0x40, count=1)[0]
 
         model = inspector.build_channel_inspector_model(row)
 
@@ -379,10 +389,12 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(sections["General"]["Record offset"], "0x00000000")
         self.assertEqual(sections["General"]["Record size"], "64 bytes")
         self.assertEqual(sections["General"]["Table index"], "0")
-        self.assertEqual(sections["Frequency (Experimental)"]["Raw RX bytes"], "05 06 07")
-        self.assertEqual(sections["Frequency (Experimental)"]["RX low-24 decoded value"], "4605764")
-        self.assertEqual(sections["Frequency (Experimental)"]["Raw TX bytes"], "09 0a 0b")
-        self.assertEqual(sections["Frequency (Experimental)"]["TX low-24 decoded value"], "4868936")
+        self.assertEqual(sections["Frequency (Experimental)"]["RX Frequency"], "146.520")
+        self.assertEqual(sections["Frequency (Experimental)"]["TX Frequency"], "146.000")
+        self.assertEqual(sections["Frequency (Experimental)"]["Raw RX bytes"], "81 f6 fa")
+        self.assertEqual(sections["Frequency (Experimental)"]["RX low-24 decoded value"], str(146_520_000 & 0xFFFFFF))
+        self.assertEqual(sections["Frequency (Experimental)"]["Raw TX bytes"], "c1 89 f2")
+        self.assertEqual(sections["Frequency (Experimental)"]["TX low-24 decoded value"], str(146_000_000 & 0xFFFFFF))
         self.assertEqual(
             sections["Frequency (Experimental)"]["Note"],
             "Full MHz reconstruction pending band context",
@@ -421,6 +433,23 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertIn("RX frequency", sections["Compare"]["Changed fields"])
         self.assertIn("channel record +0x0c", sections["Compare"]["Changed fields"])
         self.assertEqual(sections["Compare"]["Changed offsets"], "+0x05, +0x0c")
+
+    def test_compare_frequency_field_detail_shows_raw_and_decoded(self) -> None:
+        compare_tab = importlib.import_module("openkpg.gui.compare_tab")
+        frequency = importlib.import_module("openkpg.dat.frequency")
+        helpers = importlib.import_module("openkpg.gui.helpers")
+        left = bytearray(b"\x00" * (0x5E80 + 0x40))
+        right = bytearray(left)
+        left[0x5E85:0x5E88] = frequency.encode_frequency_hz(146_000_000)
+        right[0x5E85:0x5E88] = frequency.encode_frequency_hz(146_520_000)
+        result = helpers.normalized_differences(bytes(left), bytes(right), limit=10)
+        tab = compare_tab.CompareTab.__new__(compare_tab.CompareTab)
+        tab.modified_bytes = bytes(right)
+
+        row = tab._row_values(result.differences[0], result.dominant_xor_mask)
+
+        self.assertEqual(row[-2], "Raw: 81 f6 fa")
+        self.assertEqual(row[-1], "Decoded: 146.520 MHz")
 
     def test_backend_load_path_used_by_gui_can_load_fixture(self) -> None:
         module = importlib.import_module("openkpg.backend")

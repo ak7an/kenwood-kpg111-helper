@@ -1,13 +1,16 @@
 import unittest
 
 from openkpg.dat.frequency import (
+    DEFAULT_FREQUENCY_CANDIDATES,
     decode_frequency_low24,
     encode_frequency_hz,
     format_frequency_mhz,
+    reconstruct_frequency,
 )
 
 
 VERIFIED_SAMPLES = (
+    (145_675_000, "b9 93 ef"),
     (146_000_000, "c1 89 f2"),
     (146_100_000, "61 0e f4"),
     (146_120_000, "01 dc f4"),
@@ -38,6 +41,23 @@ class FrequencyEncodingTests(unittest.TestCase):
             with self.subTest(hz=hz):
                 self.assertEqual(decode_frequency_low24(bytes.fromhex(raw_hex)), hz & 0xFFFFFF)
 
+    def test_decode_reconstruct_display_for_verified_samples(self) -> None:
+        for hz, raw_hex in VERIFIED_SAMPLES:
+            with self.subTest(hz=hz):
+                low24 = decode_frequency_low24(bytes.fromhex(raw_hex))
+                reconstructed = reconstruct_frequency(low24, ((144_000_000, 148_000_000),))
+
+                self.assertEqual(reconstructed, hz)
+                self.assertTrue(format_frequency_mhz(reconstructed).startswith("14"))
+
+    def test_reconstruct_frequency_returns_none_for_ambiguous_broad_bands(self) -> None:
+        low24 = decode_frequency_low24(bytes.fromhex("81 f6 fa"))
+
+        self.assertIsNone(reconstruct_frequency(low24, DEFAULT_FREQUENCY_CANDIDATES))
+
+    def test_reconstruct_frequency_returns_none_for_no_candidate_match(self) -> None:
+        self.assertIsNone(reconstruct_frequency(0x123456, ((144_000_000, 148_000_000),)))
+
     def test_encode_masks_to_low_24_bits(self) -> None:
         self.assertEqual(encode_frequency_hz(0x1123456), encode_frequency_hz(0x123456))
 
@@ -57,7 +77,7 @@ class FrequencyEncodingTests(unittest.TestCase):
 
     def test_format_frequency_mhz(self) -> None:
         self.assertEqual(format_frequency_mhz(146_000_000), "146.000")
-        self.assertEqual(format_frequency_mhz(146_520_000), "146.52")
+        self.assertEqual(format_frequency_mhz(146_520_000), "146.520")
         self.assertEqual(format_frequency_mhz(146_512_500), "146.5125")
 
     def test_kpg111_compatibility_aliases(self) -> None:

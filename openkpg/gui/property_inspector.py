@@ -82,6 +82,8 @@ def build_channel_inspector_model(
             InspectorSection(
                 "Frequency (Experimental)",
                 (
+                    ("RX Frequency", row.rx_frequency),
+                    ("TX Frequency", row.tx_frequency),
                     ("Raw RX bytes", row.rx_bytes),
                     ("RX low-24 decoded value", row.rx_low24_decoded),
                     ("Raw TX bytes", row.tx_bytes),

@@ -90,12 +90,12 @@ class ChannelTab:
 
         self.table = self._tree_with_scrollbars(
             table_frame,
-            columns=("channel", "offset", "rx_bytes", "tx_bytes", "marker_08", "marker_0c", "ascii_preview"),
+            columns=("channel", "offset", "rx_frequency", "tx_frequency", "marker_08", "marker_0c", "ascii_preview"),
             headings={
                 "channel": "Channel",
                 "offset": "Record offset",
-                "rx_bytes": "RX bytes",
-                "tx_bytes": "TX bytes",
+                "rx_frequency": "RX Frequency",
+                "tx_frequency": "TX Frequency",
                 "marker_08": "Marker +0x08",
                 "marker_0c": "Marker +0x0C",
                 "ascii_preview": "ASCII preview",
@@ -154,8 +154,8 @@ class ChannelTab:
             (
                 row.channel,
                 format_offset(row.offset),
-                row.rx_bytes,
-                row.tx_bytes,
+                row.rx_frequency,
+                row.tx_frequency,
                 row.marker_08,
                 row.marker_0c,
                 row.ascii_preview,
@@ -216,8 +216,8 @@ class ChannelTab:
                 f"Stride: {self.stride_var.get()}",
                 f"Requested count: {self.count_entry_var.get()}",
                 f"Loaded channel records: {len(self.rows_by_item)}",
-                "RX bytes: record +0x05 length 3",
-                "TX bytes: record +0x09 length 3",
-                "Inspector labels decoded values as low-24-bit only.",
+                "RX Frequency: record +0x05 length 3",
+                "TX Frequency: record +0x09 length 3",
+                "Inspector retains raw bytes for reverse engineering.",
             )
         )
