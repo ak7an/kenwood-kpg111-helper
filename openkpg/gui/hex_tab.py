@@ -74,6 +74,12 @@ class HexRawTab:
         self.render(offset)
         self.status_callback(None, f"Hex view at {format_offset(offset)}")
 
+    def jump_to_offset(self, offset: int) -> None:
+        self.jump_var.set(format_offset(offset))
+        if self.raw_bytes:
+            self.render(offset)
+            self.status_callback(None, f"Hex view at {format_offset(offset)}")
+
     def render(self, offset: int) -> None:
         rows = make_hexdump_rows(self.raw_bytes, start=offset, length=HEX_VIEW_DEFAULT_LENGTH)
         self.visible_hex_text = "\n".join(rows)

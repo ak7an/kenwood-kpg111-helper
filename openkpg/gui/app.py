@@ -17,6 +17,7 @@ from openkpg.backend import OpenKPGProjectBackend
 
 from .channel_tab import ChannelTab
 from .compare_tab import CompareTab
+from .explorer import CodeplugExplorer, ExplorerNode, channel_number_to_offset, explorer_model_for_dat
 from .helpers import DAT_HEADER_SIZE, LoadedDatSummary, detect_self_payload_xor_mask
 from .hex_tab import HexRawTab
 from .individual_tab import IndividualIdsTab
@@ -46,9 +47,8 @@ class OpenKPGTkApp:
         self.status_message_var = tk.StringVar(value="Ready")
 
         self._build_menu()
-        self.summary_panel = SummaryPanel(root)
         self._build_status_bar()
-        self._build_tabs()
+        self._build_main_layout()
 
     def _build_menu(self) -> None:
         menu_bar = tk.Menu(self.root)
@@ -91,10 +91,20 @@ class OpenKPGTkApp:
         ):
             ttk.Label(status, textvariable=variable).pack(side=tk.LEFT, padx=(0, 12))
 
-    def _build_tabs(self) -> None:
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+    def _build_main_layout(self) -> None:
+        self.main_pane = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.main_pane.pack(fill=tk.BOTH, expand=True, padx=8, pady=(8, 8))
 
+        self.explorer = CodeplugExplorer(self.main_pane, self._on_explorer_selected)
+
+        right_frame = ttk.Frame(self.main_pane)
+        self.main_pane.add(self.explorer.frame, weight=0)
+        self.main_pane.add(right_frame, weight=1)
+
+        self.notebook = ttk.Notebook(right_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        self.summary_panel = SummaryPanel(self.notebook)
         self.talk_groups_tab = TalkGroupsTab(self.notebook, self._copy_selected_record, self._set_status_message)
         self.individual_ids_tab = IndividualIdsTab(self.notebook, self._copy_selected_record, self._set_status_message)
         self.channel_tab = ChannelTab(
@@ -200,6 +210,14 @@ class OpenKPGTkApp:
                 channel_count=len(channel_rows),
             )
         )
+        self.explorer.load_model(
+            explorer_model_for_dat(
+                path=path,
+                channel_count=len(channel_rows),
+                talk_group_count=len(self.all_talkgroups),
+                individual_id_count=len(self.all_contacts),
+            )
+        )
         self._set_status_message("Loaded DAT")
 
     def refresh_current_tab(self) -> None:
@@ -215,6 +233,35 @@ class OpenKPGTkApp:
         elif tab_text == self.compare_tab.tab_title:
             self.compare_tab.refresh()
         self._set_status_message(f"Refreshed {tab_text}")
+
+    def _on_explorer_selected(self, node: ExplorerNode) -> None:
+        if node.target in ("none", "root"):
+            return
+        if node.target == "summary":
+            self._select_tab(self.summary_panel.tab_title)
+        elif node.target == "talk_groups":
+            self._select_tab(self.talk_groups_tab.tab_title)
+        elif node.target == "individual_ids":
+            self._select_tab(self.individual_ids_tab.tab_title)
+        elif node.target == "channels":
+            self._select_tab(self.channel_tab.tab_title)
+        elif node.target == "channel" and node.channel_number is not None:
+            self._select_tab(self.channel_tab.tab_title)
+            self.channel_tab.select_channel(node.channel_number)
+            try:
+                self.hex_tab.jump_to_offset(channel_number_to_offset(node.channel_number))
+            except ValueError:
+                pass
+        elif node.target == "hex":
+            self._select_tab(self.hex_tab.tab_title)
+        elif node.target == "compare":
+            self._select_tab(self.compare_tab.tab_title)
+
+    def _select_tab(self, tab_title: str) -> None:
+        for tab_id in self.notebook.tabs():
+            if self.notebook.tab(tab_id, "text") == tab_title:
+                self.notebook.select(tab_id)
+                return
 
     def run_dat_summary(self) -> None:
         if self.current_path is None:

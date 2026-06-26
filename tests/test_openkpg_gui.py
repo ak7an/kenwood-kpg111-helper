@@ -229,6 +229,44 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertIsNone(module.channel_location_for_offset(0x5E7F))
         self.assertIsNone(module.channel_location_for_offset(0x5E80 + 512 * 0x40))
 
+    def test_no_dat_explorer_model(self) -> None:
+        module = importlib.import_module("openkpg.gui.explorer")
+
+        model = module.no_dat_explorer_model()
+
+        self.assertEqual(model.label, "No DAT loaded")
+        self.assertEqual(model.target, "none")
+        self.assertEqual(model.children, ())
+
+    def test_explorer_model_generation_from_counts(self) -> None:
+        module = importlib.import_module("openkpg.gui.explorer")
+
+        model = module.explorer_model_for_dat(Path("/tmp/example.dat"), 70, 17, 14)
+
+        self.assertEqual(model.label, "example.dat")
+        self.assertEqual([child.label for child in model.children], [
+            "Summary",
+            "Channels (70)",
+            "Talk Groups (17)",
+            "Individual IDs (14)",
+            "Hex View",
+            "Compare",
+        ])
+        channels = model.children[1]
+        self.assertEqual(len(channels.children), 64)
+        self.assertEqual(channels.children[0].label, "Channel 1")
+        self.assertEqual(channels.children[-1].label, "Channel 64")
+        self.assertEqual(channels.children[-1].channel_number, 64)
+
+    def test_channel_number_to_offset_mapping(self) -> None:
+        module = importlib.import_module("openkpg.gui.explorer")
+
+        self.assertEqual(module.channel_number_to_offset(1), 0x5E80)
+        self.assertEqual(module.channel_number_to_offset(2), 0x5EC0)
+        self.assertEqual(module.channel_number_to_offset(64), 0x5E80 + 63 * 0x40)
+        with self.assertRaises(ValueError):
+            module.channel_number_to_offset(0)
+
     def test_backend_load_path_used_by_gui_can_load_fixture(self) -> None:
         module = importlib.import_module("openkpg.backend")
         backend = module.OpenKPGProjectBackend()

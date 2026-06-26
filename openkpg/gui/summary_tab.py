@@ -13,7 +13,9 @@ from .helpers import DAT_HEADER_SIZE, format_hex_bytes
 
 
 class SummaryPanel:
-    def __init__(self, root: tk.Tk) -> None:
+    tab_title = "Summary"
+
+    def __init__(self, notebook: ttk.Notebook) -> None:
         if tk is None or ttk is None:
             raise RuntimeError("tkinter is not available in this Python installation")
         self.path_var = tk.StringVar(value="No DAT loaded")
@@ -23,8 +25,9 @@ class SummaryPanel:
         self.xor_status_var = tk.StringVar(value="Assumed payload XOR mask: 0x00 (self comparison placeholder)")
         self.readonly_note_var = tk.StringVar(value="Read-only GUI: no DAT writing, save, or save-as functionality.")
 
-        summary = ttk.LabelFrame(root, text="Loaded file summary", padding=8)
-        summary.pack(fill=tk.X, padx=8, pady=8)
+        self.frame = ttk.Frame(notebook, padding=8)
+        summary = ttk.LabelFrame(self.frame, text="Loaded file summary", padding=8)
+        summary.pack(fill=tk.X)
 
         ttk.Label(summary, text="File path:").grid(row=0, column=0, sticky=tk.W)
         ttk.Label(summary, textvariable=self.path_var).grid(row=0, column=1, sticky=tk.W)
@@ -39,6 +42,7 @@ class SummaryPanel:
         ttk.Label(summary, text="Notes:").grid(row=5, column=0, sticky=tk.W)
         ttk.Label(summary, textvariable=self.readonly_note_var).grid(row=5, column=1, sticky=tk.W)
         summary.columnconfigure(1, weight=1)
+        notebook.add(self.frame, text=self.tab_title)
 
     def load_file(self, path: object, raw_bytes: bytes, xor_mask: int) -> None:
         self.path_var.set(str(path))

@@ -221,6 +221,15 @@ class ChannelTab:
         self.set_text(self.raw_record_text, format_record_hex(row.raw_record))
         self.set_text(self.normalized_record_text, format_record_hex(row.normalized_record))
 
+    def select_channel(self, channel_number: int) -> None:
+        for item, row in self.rows_by_item.items():
+            if row.channel == channel_number:
+                self.table.selection_set(item)
+                self.table.focus(item)
+                self.table.see(item)
+                self.show_details(row)
+                return
+
     def layout_summary(self) -> str:
         return "\n".join(
             (
