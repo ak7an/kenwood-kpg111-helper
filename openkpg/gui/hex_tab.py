@@ -43,7 +43,8 @@ class HexRawTab:
         controls = ttk.Frame(self.frame)
         controls.pack(fill=tk.X, pady=(0, 4))
         ttk.Label(controls, text="Jump to offset:").pack(side=tk.LEFT)
-        ttk.Entry(controls, textvariable=self.jump_var, width=12).pack(side=tk.LEFT, padx=(4, 8))
+        self.jump_entry = ttk.Entry(controls, textvariable=self.jump_var, width=12)
+        self.jump_entry.pack(side=tk.LEFT, padx=(4, 8))
         ttk.Button(controls, text="Jump", command=self.jump).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(controls, text="Copy visible hex", command=self.copy_visible_hex).pack(side=tk.LEFT)
 
@@ -89,3 +90,6 @@ class HexRawTab:
         self.root.clipboard_clear()
         self.root.clipboard_append(self.visible_hex_text)
         self.status_callback(None, "Copied visible hex")
+
+    def focus_search(self) -> None:
+        self.jump_entry.focus_set()

@@ -18,6 +18,7 @@ from .helpers import (
     format_offset,
     normalized_differences,
 )
+from .ui_helpers import create_tree_with_scrollbars, insert_tree_rows, install_tree_context_menu
 
 
 COMPARE_DEFAULT_LIMIT = 500
@@ -29,6 +30,7 @@ class CompareTab:
     def __init__(
         self,
         notebook: ttk.Notebook,
+        root: tk.Tk,
         show_error: object,
         show_info: object,
         status_callback: object,
@@ -37,6 +39,7 @@ class CompareTab:
         if tk is None or ttk is None:
             raise RuntimeError("tkinter is not available in this Python installation")
         self.show_error = show_error
+        self.root = root
         self.show_info = show_info
         self.status_callback = status_callback
         self.result_callback = result_callback
@@ -79,7 +82,8 @@ class CompareTab:
         controls = ttk.Frame(self.frame)
         controls.pack(fill=tk.X, pady=(0, 4))
         ttk.Label(controls, text="Show first N differences:").pack(side=tk.LEFT)
-        ttk.Entry(controls, textvariable=self.limit_var, width=8).pack(side=tk.LEFT, padx=(4, 8))
+        self.limit_entry = ttk.Entry(controls, textvariable=self.limit_var, width=8)
+        self.limit_entry.pack(side=tk.LEFT, padx=(4, 8))
 
         self.table = self._tree_with_scrollbars(
             self.frame,
@@ -102,6 +106,7 @@ class CompareTab:
                 "label": "Region",
             },
         )
+        install_tree_context_menu(self.table, self.root, self.status_callback)
 
     def _tree_with_scrollbars(
         self,
@@ -111,19 +116,7 @@ class CompareTab:
     ) -> ttk.Treeview:
         frame = ttk.Frame(parent)
         frame.pack(fill=tk.BOTH, expand=True)
-        tree = ttk.Treeview(frame, columns=columns, show="headings")
-        y_scroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=tree.yview)
-        x_scroll = ttk.Scrollbar(frame, orient=tk.HORIZONTAL, command=tree.xview)
-        tree.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
-        for column in columns:
-            tree.heading(column, text=headings[column])
-            tree.column(column, width=150 if column == "label" else 120, anchor=tk.W)
-        tree.grid(row=0, column=0, sticky=tk.NSEW)
-        y_scroll.grid(row=0, column=1, sticky=tk.NS)
-        x_scroll.grid(row=1, column=0, sticky=tk.EW)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        return tree
+        return create_tree_with_scrollbars(frame, columns, headings, widths={"label": 150})
 
     def load_baseline(self, path: Path) -> None:
         self.baseline_path, self.baseline_bytes = self._read_dat(path)
@@ -166,9 +159,7 @@ class CompareTab:
         self.mask_var.set(f"0x{result.dominant_xor_mask:02x}")
         self.payload_compared_var.set(str(result.payload_bytes_compared))
         self.diff_count_var.set(str(result.normalized_differing_byte_count))
-        self.table.delete(*self.table.get_children())
-        for difference in result.differences:
-            self.table.insert("", tk.END, values=self._row_values(difference))
+        insert_tree_rows(self.table, [self._row_values(difference) for difference in result.differences])
 
     def _row_values(self, difference: NormalizedDifference) -> tuple[str, str, str, str, str, str, str]:
         location = difference.channel_location
@@ -193,3 +184,6 @@ class CompareTab:
     def refresh(self) -> None:
         if self.latest_result is not None:
             self.populate(self.latest_result)
+
+    def focus_search(self) -> None:
+        self.limit_entry.focus_set()

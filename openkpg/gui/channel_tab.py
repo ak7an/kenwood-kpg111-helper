@@ -20,6 +20,7 @@ from .helpers import (
     parse_int_auto_base,
 )
 from .property_inspector import PropertyInspector, build_channel_inspector_model
+from .ui_helpers import create_tree_with_scrollbars, insert_tree_rows, install_tree_context_menu
 
 
 class ChannelTab:
@@ -28,6 +29,7 @@ class ChannelTab:
     def __init__(
         self,
         notebook: ttk.Notebook,
+        root: tk.Tk,
         set_text: object,
         show_error: object,
         show_info: object,
@@ -40,6 +42,7 @@ class ChannelTab:
         if tk is None or ttk is None:
             raise RuntimeError("tkinter is not available in this Python installation")
         self.set_text = set_text
+        self.root = root
         self.show_error = show_error
         self.show_info = show_info
         self.status_callback = status_callback
@@ -68,7 +71,8 @@ class ChannelTab:
         controls = ttk.Frame(self.frame)
         controls.pack(fill=tk.X, pady=(0, 4))
         ttk.Label(controls, text="Start offset:").pack(side=tk.LEFT)
-        ttk.Entry(controls, textvariable=self.start_var, width=10).pack(side=tk.LEFT, padx=(4, 8))
+        self.start_entry = ttk.Entry(controls, textvariable=self.start_var, width=10)
+        self.start_entry.pack(side=tk.LEFT, padx=(4, 8))
         ttk.Label(controls, text="Stride:").pack(side=tk.LEFT)
         ttk.Entry(controls, textvariable=self.stride_var, width=8).pack(side=tk.LEFT, padx=(4, 8))
         ttk.Label(controls, text="Count:").pack(side=tk.LEFT)
@@ -98,6 +102,7 @@ class ChannelTab:
             },
         )
         self.table.bind("<<TreeviewSelect>>", self._on_selected)
+        install_tree_context_menu(self.table, self.root, lambda message: self.status_callback(None, message))
         self.inspector = PropertyInspector(detail_frame)
 
     def _tree_with_scrollbars(
@@ -106,19 +111,7 @@ class ChannelTab:
         columns: tuple[str, ...],
         headings: dict[str, str],
     ) -> ttk.Treeview:
-        tree = ttk.Treeview(parent, columns=columns, show="headings")
-        y_scroll = ttk.Scrollbar(parent, orient=tk.VERTICAL, command=tree.yview)
-        x_scroll = ttk.Scrollbar(parent, orient=tk.HORIZONTAL, command=tree.xview)
-        tree.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
-        for column in columns:
-            tree.heading(column, text=headings[column])
-            tree.column(column, width=150 if column == "ascii_preview" else 110, anchor=tk.W)
-        tree.grid(row=0, column=0, sticky=tk.NSEW)
-        y_scroll.grid(row=0, column=1, sticky=tk.NS)
-        x_scroll.grid(row=1, column=0, sticky=tk.EW)
-        parent.rowconfigure(0, weight=1)
-        parent.columnconfigure(0, weight=1)
-        return tree
+        return create_tree_with_scrollbars(parent, columns, headings, widths={"ascii_preview": 150})
 
     def build_rows(self, raw_bytes: bytes, xor_mask: int) -> list[ChannelRecordRow]:
         count = parse_int_auto_base(self.count_entry_var.get())
@@ -154,25 +147,27 @@ class ChannelTab:
         self.reload()
 
     def populate(self, rows: list[ChannelRecordRow]) -> None:
-        self.table.delete(*self.table.get_children())
         self.rows_by_item.clear()
         self.clear_details()
         self.record_count_var.set(f"Channel records: {len(rows)}")
-        for row in rows:
-            item = self.table.insert(
-                "",
-                tk.END,
-                values=(
-                    row.channel,
-                    format_offset(row.offset),
-                    row.rx_bytes,
-                    row.tx_bytes,
-                    row.marker_08,
-                    row.marker_0c,
-                    row.ascii_preview,
-                ),
+        table_rows = [
+            (
+                row.channel,
+                format_offset(row.offset),
+                row.rx_bytes,
+                row.tx_bytes,
+                row.marker_08,
+                row.marker_0c,
+                row.ascii_preview,
             )
+            for row in rows
+        ]
+        insert_tree_rows(self.table, table_rows)
+        for item, row in zip(self.table.get_children(), rows):
             self.rows_by_item[item] = row
+
+    def focus_search(self) -> None:
+        self.start_entry.focus_set()
 
     def save_preferences(self) -> None:
         if self.preferences_callback is None:
@@ -198,6 +193,7 @@ class ChannelTab:
     def show_details(self, row: ChannelRecordRow) -> None:
         self.selected_row = row
         self.inspector.render(build_channel_inspector_model(row, self.compare_result))
+        self.status_callback(f"Channel: {row.channel}", f"Selected channel {row.channel}")
 
     def select_channel(self, channel_number: int) -> None:
         for item, row in self.rows_by_item.items():

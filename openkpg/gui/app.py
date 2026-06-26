@@ -24,6 +24,7 @@ from .individual_tab import IndividualIdsTab
 from .preferences import Preferences
 from .summary_tab import SummaryPanel
 from .tg_tab import TalkGroupsTab
+from .ui_helpers import coerce_pane_position, row_to_clipboard_text, valid_window_geometry
 
 
 class OpenKPGTkApp:
@@ -42,15 +43,20 @@ class OpenKPGTkApp:
         self.all_contacts: list[object] = []
 
         self.status_path_var = tk.StringVar(value="File: none")
-        self.status_size_var = tk.StringVar(value="Size: 0")
+        self.status_channel_current_var = tk.StringVar(value="Channel: none")
         self.status_tg_var = tk.StringVar(value="TG: 0")
         self.status_id_var = tk.StringVar(value="Individual IDs: 0")
-        self.status_channel_var = tk.StringVar(value="Channels: 0")
+        self.status_compare_var = tk.StringVar(value="Compare: not run")
         self.status_message_var = tk.StringVar(value="Ready")
 
+        self._restore_window_geometry()
         self._build_menu()
+        self._build_toolbar()
         self._build_status_bar()
         self._build_main_layout()
+        self._bind_shortcuts()
+        self._restore_selected_tab()
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
 
     def _build_menu(self) -> None:
         menu_bar = tk.Menu(self.root)
@@ -85,15 +91,24 @@ class OpenKPGTkApp:
 
         self.root.config(menu=menu_bar)
 
+    def _build_toolbar(self) -> None:
+        toolbar = ttk.Frame(self.root, padding=(6, 4))
+        toolbar.pack(fill=tk.X)
+        ttk.Button(toolbar, text="Open DAT", command=self.open_dat).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(toolbar, text="Reload", command=self.reload_dat).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(toolbar, text="Compare", command=self.run_compare).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(toolbar, text="Refresh", command=self.refresh_current_tab).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(toolbar, text="About", command=self.show_about).pack(side=tk.LEFT, padx=(0, 4))
+
     def _build_status_bar(self) -> None:
         status = ttk.Frame(self.root, relief=tk.SUNKEN, padding=(6, 2))
         status.pack(side=tk.BOTTOM, fill=tk.X)
         for variable in (
             self.status_path_var,
-            self.status_size_var,
+            self.status_channel_current_var,
             self.status_tg_var,
             self.status_id_var,
-            self.status_channel_var,
+            self.status_compare_var,
             self.status_message_var,
         ):
             ttk.Label(status, textvariable=variable).pack(side=tk.LEFT, padx=(0, 12))
@@ -107,15 +122,21 @@ class OpenKPGTkApp:
         right_frame = ttk.Frame(self.main_pane)
         self.main_pane.add(self.explorer.frame, weight=0)
         self.main_pane.add(right_frame, weight=1)
+        pane_position = coerce_pane_position(self.preferences.pane_position)
+        if pane_position is not None:
+            self.root.after(100, lambda: self.main_pane.sashpos(0, pane_position))
 
         self.notebook = ttk.Notebook(right_frame)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
         self.summary_panel = SummaryPanel(self.notebook)
-        self.talk_groups_tab = TalkGroupsTab(self.notebook, self._copy_selected_record, self._set_status_message)
-        self.individual_ids_tab = IndividualIdsTab(self.notebook, self._copy_selected_record, self._set_status_message)
+        self.talk_groups_tab = TalkGroupsTab(self.notebook, self.root, self._copy_selected_record, self._set_status_message)
+        self.individual_ids_tab = IndividualIdsTab(
+            self.notebook, self.root, self._copy_selected_record, self._set_status_message
+        )
         self.channel_tab = ChannelTab(
             self.notebook,
+            self.root,
             self._set_text,
             self._show_error,
             self._show_info,
@@ -135,11 +156,13 @@ class OpenKPGTkApp:
         )
         self.compare_tab = CompareTab(
             self.notebook,
+            self.root,
             self._show_error,
             self._show_info,
             self._set_status_message,
-            result_callback=self.channel_tab.set_compare_result,
+            result_callback=self._on_compare_result,
         )
+        self.notebook.bind("<<NotebookTabChanged>>", lambda _event=None: self._remember_selected_tab())
 
     def open_dat(self) -> None:
         path = self._ask_dat_path("Open DAT")
@@ -148,7 +171,7 @@ class OpenKPGTkApp:
 
     def reload_dat(self) -> None:
         if self.current_path is None:
-            self._show_info("Reload", "No DAT file is currently loaded.")
+            self._show_info("Reload", "No DAT file is currently loaded. Open a DAT before reloading.")
             return
         self.load_dat_path(self.current_path)
 
@@ -186,10 +209,10 @@ class OpenKPGTkApp:
 
     def load_dat_path(self, path: Path) -> None:
         if not path.is_file():
-            self._show_error("Open DAT failed", f"File does not exist: {path}")
+            self._show_error("Missing file", f"The DAT file could not be found:\n{path}")
             return
 
-        self._set_status_message("Loading DAT...")
+        self._set_status_message(f"Loading {path.name}...")
         self.root.configure(cursor="watch")
         self.root.update_idletasks()
         try:
@@ -198,7 +221,7 @@ class OpenKPGTkApp:
             xor_mask = detect_self_payload_xor_mask(raw_bytes)
             channel_rows = self.channel_tab.build_rows(raw_bytes, xor_mask)
         except Exception as exc:  # pragma: no cover - GUI error path
-            self._show_error("Open DAT failed", str(exc))
+            self._show_error("Invalid DAT", f"OpenKPG could not open this DAT file:\n{path}\n\n{exc}")
             return
         finally:
             self.root.configure(cursor="")
@@ -241,7 +264,7 @@ class OpenKPGTkApp:
     def open_recent_file(self, path_text: str) -> None:
         path = Path(path_text)
         if not path.is_file():
-            self._show_error("Open Recent File", f"Recent file does not exist: {path}")
+            self._show_error("Missing recent file", f"The recent DAT file could not be found:\n{path}")
             return
         self.load_dat_path(path)
 
@@ -283,6 +306,40 @@ class OpenKPGTkApp:
             self.compare_tab.refresh()
         self._set_status_message(f"Refreshed {tab_text}")
 
+    def _bind_shortcuts(self) -> None:
+        self.root.bind("<Control-o>", lambda _event=None: self.open_dat())
+        self.root.bind("<F5>", lambda _event=None: self.refresh_current_tab())
+        self.root.bind("<Control-r>", lambda _event=None: self.reload_dat())
+        self.root.bind("<Control-f>", lambda _event=None: self.focus_current_search())
+        self.root.bind("<Control-Tab>", lambda _event=None: self.select_next_tab())
+
+    def focus_current_search(self) -> None:
+        tab = self._current_tab_object()
+        if tab is not None and hasattr(tab, "focus_search"):
+            tab.focus_search()
+
+    def select_next_tab(self) -> None:
+        tabs = self.notebook.tabs()
+        if not tabs:
+            return
+        current = self.notebook.select()
+        index = tabs.index(current) if current in tabs else 0
+        self.notebook.select(tabs[(index + 1) % len(tabs)])
+
+    def _current_tab_object(self) -> object | None:
+        tab_text = self.notebook.tab(self.notebook.select(), "text")
+        for tab in (
+            self.summary_panel,
+            self.talk_groups_tab,
+            self.individual_ids_tab,
+            self.channel_tab,
+            self.hex_tab,
+            self.compare_tab,
+        ):
+            if getattr(tab, "tab_title", None) == tab_text:
+                return tab
+        return None
+
     def _on_explorer_selected(self, node: ExplorerNode) -> None:
         if node.target in ("none", "root"):
             return
@@ -297,6 +354,7 @@ class OpenKPGTkApp:
         elif node.target == "channel" and node.channel_number is not None:
             self._select_tab(self.channel_tab.tab_title)
             self.channel_tab.select_channel(node.channel_number)
+            self.status_channel_current_var.set(f"Channel: {node.channel_number}")
             try:
                 self.hex_tab.jump_to_offset(channel_number_to_offset(node.channel_number))
             except ValueError:
@@ -311,6 +369,17 @@ class OpenKPGTkApp:
             if self.notebook.tab(tab_id, "text") == tab_title:
                 self.notebook.select(tab_id)
                 return
+
+    def _remember_selected_tab(self) -> None:
+        if not hasattr(self, "notebook"):
+            return
+        selected = self.notebook.select()
+        if selected:
+            self.preferences.selected_tab = self.notebook.tab(selected, "text")
+
+    def _restore_selected_tab(self) -> None:
+        if self.preferences.selected_tab:
+            self.root.after(100, lambda: self._select_tab(self.preferences.selected_tab))
 
     def run_dat_summary(self) -> None:
         if self.current_path is None:
@@ -340,6 +409,11 @@ class OpenKPGTkApp:
     def run_compare(self) -> None:
         self.compare_tab.run_compare()
 
+    def _on_compare_result(self, result: object) -> None:
+        self.channel_tab.set_compare_result(result)
+        count = result.normalized_differing_byte_count
+        self.status_compare_var.set(f"Compare: {count} diffs")
+
     def show_about(self) -> None:
         self._show_info(
             "About OpenKPG",
@@ -353,19 +427,18 @@ class OpenKPGTkApp:
             return
         values = tree.item(selection[0], "values")
         self.root.clipboard_clear()
-        self.root.clipboard_append("\t".join(str(value) for value in values))
+        self.root.clipboard_append(row_to_clipboard_text(values))
         self._set_status_message("Copied selected row")
 
     def _set_loaded_status(self, summary: LoadedDatSummary) -> None:
-        self.status_path_var.set(f"File: {summary.path}")
-        self.status_size_var.set(f"Size: {summary.size} bytes")
+        self.status_path_var.set(f"File: {summary.path.name}")
+        self.status_channel_current_var.set("Channel: none")
         self.status_tg_var.set(f"TG: {summary.talk_group_count}")
         self.status_id_var.set(f"Individual IDs: {summary.individual_id_count}")
-        self.status_channel_var.set(f"Channels: {summary.channel_count}")
 
     def _set_channel_status(self, channel_status: str | None, message: str) -> None:
         if channel_status is not None:
-            self.status_channel_var.set(channel_status)
+            self.status_channel_current_var.set(channel_status)
         self._set_status_message(message)
 
     def _set_status_message(self, message: str) -> None:
@@ -376,6 +449,25 @@ class OpenKPGTkApp:
         widget.delete("1.0", tk.END)
         widget.insert("1.0", value)
         widget.configure(state=tk.DISABLED)
+
+    def _restore_window_geometry(self) -> None:
+        geometry = valid_window_geometry(self.preferences.window_geometry)
+        if geometry:
+            self.root.geometry(geometry)
+
+    def close(self) -> None:
+        pane_position = None
+        if hasattr(self, "main_pane"):
+            try:
+                pane_position = self.main_pane.sashpos(0)
+            except tk.TclError:
+                pane_position = None
+        selected_tab = ""
+        if hasattr(self, "notebook") and self.notebook.select():
+            selected_tab = self.notebook.tab(self.notebook.select(), "text")
+        self.preferences.set_window_state(self.root.geometry(), pane_position, selected_tab)
+        self._save_preferences()
+        self.root.destroy()
 
     def _show_error(self, title: str, message: str) -> None:
         if messagebox is None:

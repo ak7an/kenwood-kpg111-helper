@@ -24,6 +24,9 @@ class Preferences:
     channel_start: str = DEFAULT_CHANNEL_START
     channel_stride: str = DEFAULT_CHANNEL_STRIDE
     channel_count: int = DEFAULT_CHANNEL_COUNT
+    window_geometry: str = ""
+    pane_position: int | None = None
+    selected_tab: str = ""
 
     @classmethod
     def load(cls, path: Path | None = None) -> "Preferences":
@@ -42,6 +45,9 @@ class Preferences:
             if isinstance(data.get("channel_stride"), str)
             else DEFAULT_CHANNEL_STRIDE,
             channel_count=data.get("channel_count") if isinstance(data.get("channel_count"), int) else DEFAULT_CHANNEL_COUNT,
+            window_geometry=data.get("window_geometry") if isinstance(data.get("window_geometry"), str) else "",
+            pane_position=data.get("pane_position") if isinstance(data.get("pane_position"), int) else None,
+            selected_tab=data.get("selected_tab") if isinstance(data.get("selected_tab"), str) else "",
         )
 
     def save(self, path: Path | None = None) -> None:
@@ -56,6 +62,9 @@ class Preferences:
             "channel_start": self.channel_start,
             "channel_stride": self.channel_stride,
             "channel_count": self.channel_count,
+            "window_geometry": self.window_geometry,
+            "pane_position": self.pane_position,
+            "selected_tab": self.selected_tab,
         }
 
     def add_recent_file(self, path: Path | str) -> None:
@@ -74,6 +83,11 @@ class Preferences:
         self.channel_start = start
         self.channel_stride = stride
         self.channel_count = count
+
+    def set_window_state(self, geometry: str, pane_position: int | None, selected_tab: str) -> None:
+        self.window_geometry = geometry
+        self.pane_position = pane_position
+        self.selected_tab = selected_tab
 
 
 def _string_list(value: object) -> list[str]:

@@ -325,6 +325,43 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(loaded.channel_stride, "0x80")
         self.assertEqual(loaded.channel_count, 64)
 
+    def test_saving_and_loading_window_state(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preferences.json"
+            prefs = module.Preferences()
+            prefs.set_window_state("1200x800+10+20", 240, "Channels")
+            prefs.save(path)
+
+            loaded = module.Preferences.load(path)
+
+        self.assertEqual(loaded.window_geometry, "1200x800+10+20")
+        self.assertEqual(loaded.pane_position, 240)
+        self.assertEqual(loaded.selected_tab, "Channels")
+
+    def test_sort_helpers_use_natural_order(self) -> None:
+        module = importlib.import_module("openkpg.gui.ui_helpers")
+        rows = [("Channel 10",), ("Channel 2",), ("Channel 1",)]
+
+        sorted_rows = module.sorted_table_rows(rows, 0)
+
+        self.assertEqual(sorted_rows, [("Channel 1",), ("Channel 2",), ("Channel 10",)])
+
+    def test_clipboard_text_helpers(self) -> None:
+        module = importlib.import_module("openkpg.gui.ui_helpers")
+
+        self.assertEqual(module.row_to_clipboard_text(("a", 1, "b")), "a\t1\tb")
+        self.assertEqual(module.hex_values_from_row(("RX", "01 02 03", "not-hex", "ff")), "01 02 03 ff")
+
+    def test_window_state_helpers_validate_values(self) -> None:
+        module = importlib.import_module("openkpg.gui.ui_helpers")
+
+        self.assertEqual(module.valid_window_geometry("1200x800+1-2"), "1200x800+1-2")
+        self.assertEqual(module.valid_window_geometry("bad"), "")
+        self.assertEqual(module.coerce_pane_position(240), 240)
+        self.assertIsNone(module.coerce_pane_position(-1))
+        self.assertIsNone(module.coerce_pane_position("240"))
+
     def test_property_model_generation(self) -> None:
         helpers = importlib.import_module("openkpg.gui.helpers")
         inspector = importlib.import_module("openkpg.gui.property_inspector")
