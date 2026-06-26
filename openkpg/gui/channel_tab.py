@@ -31,6 +31,10 @@ class ChannelTab:
         show_error: object,
         show_info: object,
         status_callback: object,
+        initial_start: str = f"0x{CHANNEL_TABLE_START:x}",
+        initial_stride: str = f"0x{CHANNEL_RECORD_STRIDE:x}",
+        initial_count: int = CHANNEL_RECORD_COUNT,
+        preferences_callback: object | None = None,
     ) -> None:
         if tk is None or ttk is None:
             raise RuntimeError("tkinter is not available in this Python installation")
@@ -38,13 +42,14 @@ class ChannelTab:
         self.show_error = show_error
         self.show_info = show_info
         self.status_callback = status_callback
+        self.preferences_callback = preferences_callback
         self.raw_bytes = b""
         self.xor_mask = 0x00
         self.rows_by_item: dict[str, ChannelRecordRow] = {}
 
-        self.start_var = tk.StringVar(value=f"0x{CHANNEL_TABLE_START:x}")
-        self.stride_var = tk.StringVar(value=f"0x{CHANNEL_RECORD_STRIDE:x}")
-        self.count_entry_var = tk.StringVar(value=str(CHANNEL_RECORD_COUNT))
+        self.start_var = tk.StringVar(value=initial_start)
+        self.stride_var = tk.StringVar(value=initial_stride)
+        self.count_entry_var = tk.StringVar(value=str(initial_count))
         self.record_count_var = tk.StringVar(value="Channel records: 0")
         self.detail_offset_var = tk.StringVar(value="")
         self.detail_index_var = tk.StringVar(value="")
@@ -168,6 +173,7 @@ class ChannelTab:
             self.show_error("Invalid channel layout", str(exc))
             return
         self.populate(rows)
+        self.save_preferences()
         self.status_callback(f"Channels: {len(rows)}", "Channel view refreshed")
 
     def refresh(self) -> None:
@@ -193,6 +199,12 @@ class ChannelTab:
                 ),
             )
             self.rows_by_item[item] = row
+
+    def save_preferences(self) -> None:
+        if self.preferences_callback is None:
+            return
+        count = parse_int_auto_base(self.count_entry_var.get())
+        self.preferences_callback(self.start_var.get(), self.stride_var.get(), count)
 
     def _on_selected(self, _event: object) -> None:
         selection = self.table.selection()

@@ -21,6 +21,7 @@ from .explorer import CodeplugExplorer, ExplorerNode, channel_number_to_offset, 
 from .helpers import DAT_HEADER_SIZE, LoadedDatSummary, detect_self_payload_xor_mask
 from .hex_tab import HexRawTab
 from .individual_tab import IndividualIdsTab
+from .preferences import Preferences
 from .summary_tab import SummaryPanel
 from .tg_tab import TalkGroupsTab
 
@@ -32,6 +33,7 @@ class OpenKPGTkApp:
         self.root = root
         self.root.title("OpenKPG")
         self.backend = OpenKPGProjectBackend()
+        self.preferences = Preferences.load()
 
         self.current_path: Path | None = None
         self.raw_bytes: bytes = b""
@@ -54,13 +56,18 @@ class OpenKPGTkApp:
         menu_bar = tk.Menu(self.root)
 
         file_menu = tk.Menu(menu_bar, tearoff=False)
+        self.file_menu = file_menu
         file_menu.add_command(label="Open DAT", command=self.open_dat)
         file_menu.add_command(label="Open Baseline DAT for Compare", command=self.open_compare_baseline)
         file_menu.add_command(label="Open Modified DAT for Compare", command=self.open_compare_modified)
         file_menu.add_command(label="Reload", command=self.reload_dat)
+        self.recent_menu = tk.Menu(file_menu, tearoff=False)
+        file_menu.add_cascade(label="Recent Files", menu=self.recent_menu)
+        file_menu.add_command(label="Clear Recent Files", command=self.clear_recent_files)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.destroy)
         menu_bar.add_cascade(label="File", menu=file_menu)
+        self._rebuild_recent_menu()
 
         view_menu = tk.Menu(menu_bar, tearoff=False)
         view_menu.add_command(label="Refresh current tab", command=self.refresh_current_tab)
@@ -113,6 +120,10 @@ class OpenKPGTkApp:
             self._show_error,
             self._show_info,
             self._set_channel_status,
+            initial_start=self.preferences.channel_start,
+            initial_stride=self.preferences.channel_stride,
+            initial_count=self.preferences.channel_count,
+            preferences_callback=self._save_channel_preferences,
         )
         self.hex_tab = HexRawTab(
             self.notebook,
@@ -161,10 +172,13 @@ class OpenKPGTkApp:
     def _ask_dat_path(self, title: str) -> Path | None:
         if filedialog is None:
             raise RuntimeError("tkinter is not available in this Python installation")
-        filename = filedialog.askopenfilename(
-            title=title,
-            filetypes=(("DAT files", "*.dat"), ("All files", "*.*")),
-        )
+        dialog_options: dict[str, object] = {
+            "title": title,
+            "filetypes": (("DAT files", "*.dat"), ("All files", "*.*")),
+        }
+        if self.preferences.last_open_dir:
+            dialog_options["initialdir"] = self.preferences.last_open_dir
+        filename = filedialog.askopenfilename(**dialog_options)
         if not filename:
             return None
         return Path(filename)
@@ -218,7 +232,41 @@ class OpenKPGTkApp:
                 individual_id_count=len(self.all_contacts),
             )
         )
+        self.preferences.add_recent_file(path)
+        self._save_preferences()
+        self._rebuild_recent_menu()
         self._set_status_message("Loaded DAT")
+
+    def open_recent_file(self, path_text: str) -> None:
+        path = Path(path_text)
+        if not path.is_file():
+            self._show_error("Open Recent File", f"Recent file does not exist: {path}")
+            return
+        self.load_dat_path(path)
+
+    def clear_recent_files(self) -> None:
+        self.preferences.clear_recent_files()
+        self._save_preferences()
+        self._rebuild_recent_menu()
+        self._set_status_message("Recent files cleared")
+
+    def _rebuild_recent_menu(self) -> None:
+        self.recent_menu.delete(0, tk.END)
+        if not self.preferences.recent_files:
+            self.recent_menu.add_command(label="No recent files", state=tk.DISABLED)
+            return
+        for recent in self.preferences.recent_files:
+            self.recent_menu.add_command(label=recent, command=lambda path=recent: self.open_recent_file(path))
+
+    def _save_channel_preferences(self, start: str, stride: str, count: int) -> None:
+        self.preferences.set_channel_defaults(start, stride, count)
+        self._save_preferences()
+
+    def _save_preferences(self) -> None:
+        try:
+            self.preferences.save()
+        except OSError as exc:
+            self._set_status_message(f"Preferences not saved: {exc}")
 
     def refresh_current_tab(self) -> None:
         tab_text = self.notebook.tab(self.notebook.select(), "text")

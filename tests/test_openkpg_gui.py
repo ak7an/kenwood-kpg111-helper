@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import importlib
+import tempfile
 import unittest
 
 
@@ -266,6 +267,63 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(module.channel_number_to_offset(64), 0x5E80 + 63 * 0x40)
         with self.assertRaises(ValueError):
             module.channel_number_to_offset(0)
+
+    def test_loading_missing_preferences_uses_defaults(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs = module.Preferences.load(Path(tmp) / "missing.json")
+
+        self.assertEqual(prefs.recent_files, [])
+        self.assertEqual(prefs.last_open_dir, "")
+        self.assertEqual(prefs.channel_start, "0x5E80")
+        self.assertEqual(prefs.channel_stride, "0x40")
+        self.assertEqual(prefs.channel_count, 128)
+
+    def test_invalid_json_preferences_fallback_to_defaults(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preferences.json"
+            path.write_text("{not valid json", encoding="utf-8")
+
+            prefs = module.Preferences.load(path)
+
+        self.assertEqual(prefs.recent_files, [])
+        self.assertEqual(prefs.channel_count, 128)
+
+    def test_recent_file_add_dedupe_and_max_10(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        prefs = module.Preferences()
+
+        for index in range(12):
+            prefs.add_recent_file(f"/tmp/file{index}.dat")
+        prefs.add_recent_file("/tmp/file5.dat")
+
+        self.assertEqual(prefs.recent_files[0], "/tmp/file5.dat")
+        self.assertEqual(len(prefs.recent_files), 10)
+        self.assertEqual(prefs.recent_files.count("/tmp/file5.dat"), 1)
+        self.assertEqual(prefs.last_open_dir, "/tmp")
+
+    def test_clear_recent_files(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        prefs = module.Preferences(recent_files=["/tmp/a.dat", "/tmp/b.dat"])
+
+        prefs.clear_recent_files()
+
+        self.assertEqual(prefs.recent_files, [])
+
+    def test_saving_and_loading_channel_defaults(self) -> None:
+        module = importlib.import_module("openkpg.gui.preferences")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".config" / "openkpg" / "preferences.json"
+            prefs = module.Preferences()
+            prefs.set_channel_defaults("0x6000", "0x80", 64)
+            prefs.save(path)
+
+            loaded = module.Preferences.load(path)
+
+        self.assertEqual(loaded.channel_start, "0x6000")
+        self.assertEqual(loaded.channel_stride, "0x80")
+        self.assertEqual(loaded.channel_count, 64)
 
     def test_backend_load_path_used_by_gui_can_load_fixture(self) -> None:
         module = importlib.import_module("openkpg.backend")
