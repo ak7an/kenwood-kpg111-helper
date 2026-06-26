@@ -7,6 +7,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from openkpg.dat.frequency import decode_frequency_low24
+
 
 DAT_HEADER_SIZE = 0x40
 HEX_VIEW_DEFAULT_LENGTH = 4096
@@ -30,6 +32,8 @@ class ChannelRecordRow:
     offset: int
     rx_bytes: str
     tx_bytes: str
+    rx_low24_decoded: str
+    tx_low24_decoded: str
     marker_08: str
     marker_0c: str
     ascii_preview: str
@@ -92,6 +96,10 @@ def format_offset(offset: int | None) -> str:
 
 def format_hex_bytes(data: bytes) -> str:
     return data.hex(" ")
+
+
+def format_frequency_low24(raw: bytes) -> str:
+    return str(decode_frequency_low24(raw))
 
 
 def format_bytes(data: bytes) -> str:
@@ -251,12 +259,22 @@ def channel_row_model(
         if len(record) < CHANNEL_RECORD_SIZE:
             break
         normalized_record = normalize_record(record, xor_mask)
+        rx_frequency_bytes = record[CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE]
+        tx_frequency_bytes = record[CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE]
+        normalized_rx_frequency_bytes = normalized_record[
+            CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE
+        ]
+        normalized_tx_frequency_bytes = normalized_record[
+            CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE
+        ]
         rows.append(
             ChannelRecordRow(
                 channel=index + 1,
                 offset=offset,
-                rx_bytes=format_hex_bytes(record[CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE]),
-                tx_bytes=format_hex_bytes(record[CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE]),
+                rx_bytes=format_hex_bytes(rx_frequency_bytes),
+                tx_bytes=format_hex_bytes(tx_frequency_bytes),
+                rx_low24_decoded=format_frequency_low24(normalized_rx_frequency_bytes),
+                tx_low24_decoded=format_frequency_low24(normalized_tx_frequency_bytes),
                 marker_08=format_hex_bytes(record[CHANNEL_MARKER_08_OFFSET : CHANNEL_MARKER_08_OFFSET + 1]),
                 marker_0c=format_hex_bytes(record[CHANNEL_MARKER_0C_OFFSET : CHANNEL_MARKER_0C_OFFSET + 1]),
                 ascii_preview=ascii_safe(record[:16]),

@@ -65,7 +65,7 @@ class ChannelTab:
     def _build(self) -> None:
         ttk.Label(
             self.frame,
-            text="Experimental / read-only channel record view. Frequency is not decoded yet.",
+            text="Experimental / read-only channel record view. Full MHz reconstruction pending band context.",
         ).pack(anchor=tk.W, pady=(0, 4))
 
         controls = ttk.Frame(self.frame)
@@ -218,6 +218,6 @@ class ChannelTab:
                 f"Loaded channel records: {len(self.rows_by_item)}",
                 "RX bytes: record +0x05 length 3",
                 "TX bytes: record +0x09 length 3",
-                "Frequency is not decoded yet.",
+                "Inspector labels decoded values as low-24-bit only.",
             )
         )

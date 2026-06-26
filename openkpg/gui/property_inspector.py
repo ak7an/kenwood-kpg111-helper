@@ -82,9 +82,11 @@ def build_channel_inspector_model(
             InspectorSection(
                 "Frequency (Experimental)",
                 (
-                    ("RX bytes", row.rx_bytes),
-                    ("TX bytes", row.tx_bytes),
-                    ("Status", "Encoding not yet decoded"),
+                    ("Raw RX bytes", row.rx_bytes),
+                    ("RX low-24 decoded value", row.rx_low24_decoded),
+                    ("Raw TX bytes", row.tx_bytes),
+                    ("TX low-24 decoded value", row.tx_low24_decoded),
+                    ("Note", "Full MHz reconstruction pending band context"),
                 ),
             ),
             InspectorSection(

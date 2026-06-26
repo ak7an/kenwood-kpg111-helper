@@ -132,12 +132,17 @@ class OpenKPGGuiTests(unittest.TestCase):
 
     def test_channel_records_include_normalized_record_bytes(self) -> None:
         module = importlib.import_module("openkpg.gui.helpers")
+        frequency = importlib.import_module("openkpg.dat.frequency")
         data = bytes(range(0x40))
 
         rows = module.extract_channel_records(data, start=0, stride=0x40, count=1, xor_mask=0xFF)
 
         self.assertEqual(rows[0].raw_record[:4], b"\x00\x01\x02\x03")
         self.assertEqual(rows[0].normalized_record[:4], b"\xff\xfe\xfd\xfc")
+        self.assertEqual(
+            rows[0].rx_low24_decoded,
+            str(frequency.decode_frequency_low24(bytes.fromhex("fa f9 f8"))),
+        )
 
     def test_format_record_hex_uses_16_byte_rows(self) -> None:
         module = importlib.import_module("openkpg.gui.helpers")
@@ -374,8 +379,14 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(sections["General"]["Record offset"], "0x00000000")
         self.assertEqual(sections["General"]["Record size"], "64 bytes")
         self.assertEqual(sections["General"]["Table index"], "0")
-        self.assertEqual(sections["Frequency (Experimental)"]["RX bytes"], "05 06 07")
-        self.assertEqual(sections["Frequency (Experimental)"]["Status"], "Encoding not yet decoded")
+        self.assertEqual(sections["Frequency (Experimental)"]["Raw RX bytes"], "05 06 07")
+        self.assertEqual(sections["Frequency (Experimental)"]["RX low-24 decoded value"], "4605764")
+        self.assertEqual(sections["Frequency (Experimental)"]["Raw TX bytes"], "09 0a 0b")
+        self.assertEqual(sections["Frequency (Experimental)"]["TX low-24 decoded value"], "4868936")
+        self.assertEqual(
+            sections["Frequency (Experimental)"]["Note"],
+            "Full MHz reconstruction pending band context",
+        )
         self.assertEqual(sections["Record Structure"]["Marker byte +0x08"], "08")
 
     def test_property_model_empty_no_compare_state(self) -> None:
