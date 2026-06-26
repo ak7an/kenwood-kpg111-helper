@@ -166,6 +166,69 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(module.filter_table_rows([{"name": "Alpha"}], "alp"), [{"name": "Alpha"}])
         self.assertEqual(module.filter_table_rows([(1, "Bravo")], "bravo"), [(1, "Bravo")])
 
+    def test_dominant_xor_mask_detects_payload_shift(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+
+        self.assertEqual(module.dominant_xor_mask(b"\x00\x11\x22", b"\x5b\x4a\x79"), 0x5B)
+
+    def test_pure_xor_shifted_payload_has_zero_normalized_differences(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+        left = b"H" * 0x40 + bytes([0x00, 0x11, 0x22, 0x33])
+        right = b"H" * 0x40 + bytes(byte ^ 0x5B for byte in [0x00, 0x11, 0x22, 0x33])
+
+        result = module.normalized_differences(left, right)
+
+        self.assertEqual(result.dominant_xor_mask, 0x5B)
+        self.assertEqual(result.payload_bytes_compared, 4)
+        self.assertEqual(result.normalized_differing_byte_count, 0)
+        self.assertEqual(result.differences, [])
+
+    def test_one_edited_byte_is_reported_after_normalization(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+        left = b"H" * 0x40 + bytes([0x00, 0x11, 0x22, 0x33])
+        right_payload = bytearray(byte ^ 0x5B for byte in [0x00, 0x11, 0x22, 0x33])
+        right_payload[2] = 0x99
+        right = b"H" * 0x40 + bytes(right_payload)
+
+        result = module.normalized_differences(left, right)
+
+        self.assertEqual(result.normalized_differing_byte_count, 1)
+        self.assertEqual(result.differences[0].offset, 0x42)
+        self.assertEqual(result.differences[0].left_byte, 0x22)
+        self.assertEqual(result.differences[0].right_raw_byte, 0x99)
+        self.assertEqual(result.differences[0].right_normalized_byte, 0xC2)
+
+    def test_normalized_differences_rejects_size_mismatch(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+
+        with self.assertRaises(ValueError):
+            module.normalized_differences(b"a", b"ab")
+
+    def test_channel_location_maps_offset_to_channel_and_relative_offset(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+
+        location = module.channel_location_for_offset(0x5E80 + 0x40 + 0x12)
+
+        self.assertIsNotNone(location)
+        self.assertEqual(location.channel, 2)
+        self.assertEqual(location.relative_offset, 0x12)
+        self.assertEqual(location.label, "channel record +0x12")
+
+    def test_channel_location_detects_rx_and_tx_field_labels(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+
+        rx = module.channel_location_for_offset(0x5E80 + 0x05)
+        tx = module.channel_location_for_offset(0x5E80 + 0x09)
+
+        self.assertEqual(rx.label, "RX frequency")
+        self.assertEqual(tx.label, "TX frequency")
+
+    def test_channel_location_returns_none_outside_known_table(self) -> None:
+        module = importlib.import_module("openkpg.gui.helpers")
+
+        self.assertIsNone(module.channel_location_for_offset(0x5E7F))
+        self.assertIsNone(module.channel_location_for_offset(0x5E80 + 512 * 0x40))
+
     def test_backend_load_path_used_by_gui_can_load_fixture(self) -> None:
         module = importlib.import_module("openkpg.backend")
         backend = module.OpenKPGProjectBackend()

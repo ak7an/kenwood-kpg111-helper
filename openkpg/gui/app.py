@@ -16,6 +16,7 @@ except ModuleNotFoundError:  # pragma: no cover - depends on Python installation
 from openkpg.backend import OpenKPGProjectBackend
 
 from .channel_tab import ChannelTab
+from .compare_tab import CompareTab
 from .helpers import DAT_HEADER_SIZE, LoadedDatSummary, detect_self_payload_xor_mask
 from .hex_tab import HexRawTab
 from .individual_tab import IndividualIdsTab
@@ -54,6 +55,8 @@ class OpenKPGTkApp:
 
         file_menu = tk.Menu(menu_bar, tearoff=False)
         file_menu.add_command(label="Open DAT", command=self.open_dat)
+        file_menu.add_command(label="Open Baseline DAT for Compare", command=self.open_compare_baseline)
+        file_menu.add_command(label="Open Modified DAT for Compare", command=self.open_compare_modified)
         file_menu.add_command(label="Reload", command=self.reload_dat)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.destroy)
@@ -66,6 +69,7 @@ class OpenKPGTkApp:
         tools_menu = tk.Menu(menu_bar, tearoff=False)
         tools_menu.add_command(label="Run DAT Summary", command=self.run_dat_summary)
         tools_menu.add_command(label="Run Channel Layout Summary", command=self.run_channel_layout_summary)
+        tools_menu.add_command(label="Run Compare", command=self.run_compare)
         menu_bar.add_cascade(label="Tools", menu=tools_menu)
 
         help_menu = tk.Menu(menu_bar, tearoff=False)
@@ -108,22 +112,52 @@ class OpenKPGTkApp:
             self._show_info,
             self._set_channel_status,
         )
+        self.compare_tab = CompareTab(
+            self.notebook,
+            self._show_error,
+            self._show_info,
+            self._set_status_message,
+        )
 
     def open_dat(self) -> None:
-        if filedialog is None:
-            raise RuntimeError("tkinter is not available in this Python installation")
-        filename = filedialog.askopenfilename(
-            title="Open DAT",
-            filetypes=(("DAT files", "*.dat"), ("All files", "*.*")),
-        )
-        if filename:
-            self.load_dat_path(Path(filename))
+        path = self._ask_dat_path("Open DAT")
+        if path is not None:
+            self.load_dat_path(path)
 
     def reload_dat(self) -> None:
         if self.current_path is None:
             self._show_info("Reload", "No DAT file is currently loaded.")
             return
         self.load_dat_path(self.current_path)
+
+    def open_compare_baseline(self) -> None:
+        path = self._ask_dat_path("Open Baseline DAT for Compare")
+        if path is None:
+            return
+        try:
+            self.compare_tab.load_baseline(path)
+        except ValueError as exc:
+            self._show_error("Open Baseline DAT failed", str(exc))
+
+    def open_compare_modified(self) -> None:
+        path = self._ask_dat_path("Open Modified DAT for Compare")
+        if path is None:
+            return
+        try:
+            self.compare_tab.load_modified(path)
+        except ValueError as exc:
+            self._show_error("Open Modified DAT failed", str(exc))
+
+    def _ask_dat_path(self, title: str) -> Path | None:
+        if filedialog is None:
+            raise RuntimeError("tkinter is not available in this Python installation")
+        filename = filedialog.askopenfilename(
+            title=title,
+            filetypes=(("DAT files", "*.dat"), ("All files", "*.*")),
+        )
+        if not filename:
+            return None
+        return Path(filename)
 
     def load_dat_path(self, path: Path) -> None:
         if not path.is_file():
@@ -178,6 +212,8 @@ class OpenKPGTkApp:
             self.channel_tab.refresh()
         elif tab_text == self.hex_tab.tab_title:
             self.hex_tab.refresh()
+        elif tab_text == self.compare_tab.tab_title:
+            self.compare_tab.refresh()
         self._set_status_message(f"Refreshed {tab_text}")
 
     def run_dat_summary(self) -> None:
@@ -204,6 +240,9 @@ class OpenKPGTkApp:
             self._show_info("Channel Layout Summary", "No DAT file is currently loaded.")
             return
         self._show_info("Channel Layout Summary", self.channel_tab.layout_summary())
+
+    def run_compare(self) -> None:
+        self.compare_tab.run_compare()
 
     def show_about(self) -> None:
         self._show_info(
