@@ -14,11 +14,12 @@ from .helpers import (
     CHANNEL_RECORD_STRIDE,
     CHANNEL_TABLE_START,
     ChannelRecordRow,
+    NormalizedDiffResult,
     extract_channel_records,
     format_offset,
-    format_record_hex,
     parse_int_auto_base,
 )
+from .property_inspector import PropertyInspector, build_channel_inspector_model
 
 
 class ChannelTab:
@@ -46,15 +47,13 @@ class ChannelTab:
         self.raw_bytes = b""
         self.xor_mask = 0x00
         self.rows_by_item: dict[str, ChannelRecordRow] = {}
+        self.compare_result: NormalizedDiffResult | None = None
+        self.selected_row: ChannelRecordRow | None = None
 
         self.start_var = tk.StringVar(value=initial_start)
         self.stride_var = tk.StringVar(value=initial_stride)
         self.count_entry_var = tk.StringVar(value=str(initial_count))
         self.record_count_var = tk.StringVar(value="Channel records: 0")
-        self.detail_offset_var = tk.StringVar(value="")
-        self.detail_index_var = tk.StringVar(value="")
-        self.detail_rx_var = tk.StringVar(value="")
-        self.detail_tx_var = tk.StringVar(value="")
 
         self.frame = ttk.Frame(notebook, padding=4)
         self._build()
@@ -99,7 +98,7 @@ class ChannelTab:
             },
         )
         self.table.bind("<<TreeviewSelect>>", self._on_selected)
-        self._build_details(detail_frame)
+        self.inspector = PropertyInspector(detail_frame)
 
     def _tree_with_scrollbars(
         self,
@@ -120,31 +119,6 @@ class ChannelTab:
         parent.rowconfigure(0, weight=1)
         parent.columnconfigure(0, weight=1)
         return tree
-
-    def _build_details(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Selected channel details").grid(row=0, column=0, columnspan=2, sticky=tk.W)
-        ttk.Label(parent, text="Record index:").grid(row=1, column=0, sticky=tk.W, pady=(6, 0))
-        ttk.Label(parent, textvariable=self.detail_index_var).grid(row=1, column=1, sticky=tk.W, pady=(6, 0))
-        ttk.Label(parent, text="Record offset:").grid(row=2, column=0, sticky=tk.W)
-        ttk.Label(parent, textvariable=self.detail_offset_var).grid(row=2, column=1, sticky=tk.W)
-        ttk.Label(parent, text="RX bytes:").grid(row=3, column=0, sticky=tk.W)
-        ttk.Label(parent, textvariable=self.detail_rx_var).grid(row=3, column=1, sticky=tk.W)
-        ttk.Label(parent, text="TX bytes:").grid(row=4, column=0, sticky=tk.W)
-        ttk.Label(parent, textvariable=self.detail_tx_var).grid(row=4, column=1, sticky=tk.W)
-
-        ttk.Label(parent, text="Raw 64-byte record hex:").grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(8, 0))
-        self.raw_record_text = tk.Text(parent, height=5, width=62, wrap=tk.NONE, state=tk.DISABLED)
-        self.raw_record_text.grid(row=6, column=0, columnspan=2, sticky=tk.NSEW)
-
-        ttk.Label(parent, text="Normalized 64-byte record hex:").grid(
-            row=7, column=0, columnspan=2, sticky=tk.W, pady=(8, 0)
-        )
-        self.normalized_record_text = tk.Text(parent, height=5, width=62, wrap=tk.NONE, state=tk.DISABLED)
-        self.normalized_record_text.grid(row=8, column=0, columnspan=2, sticky=tk.NSEW)
-
-        parent.columnconfigure(1, weight=1)
-        parent.rowconfigure(6, weight=1)
-        parent.rowconfigure(8, weight=1)
 
     def build_rows(self, raw_bytes: bytes, xor_mask: int) -> list[ChannelRecordRow]:
         count = parse_int_auto_base(self.count_entry_var.get())
@@ -218,20 +192,12 @@ class ChannelTab:
         self.show_details(row)
 
     def clear_details(self) -> None:
-        self.detail_index_var.set("")
-        self.detail_offset_var.set("")
-        self.detail_rx_var.set("")
-        self.detail_tx_var.set("")
-        self.set_text(self.raw_record_text, "")
-        self.set_text(self.normalized_record_text, "")
+        self.selected_row = None
+        self.inspector.render(build_channel_inspector_model(None, self.compare_result))
 
     def show_details(self, row: ChannelRecordRow) -> None:
-        self.detail_index_var.set(str(row.channel))
-        self.detail_offset_var.set(format_offset(row.offset))
-        self.detail_rx_var.set(row.rx_bytes)
-        self.detail_tx_var.set(row.tx_bytes)
-        self.set_text(self.raw_record_text, format_record_hex(row.raw_record))
-        self.set_text(self.normalized_record_text, format_record_hex(row.normalized_record))
+        self.selected_row = row
+        self.inspector.render(build_channel_inspector_model(row, self.compare_result))
 
     def select_channel(self, channel_number: int) -> None:
         for item, row in self.rows_by_item.items():
@@ -241,6 +207,10 @@ class ChannelTab:
                 self.table.see(item)
                 self.show_details(row)
                 return
+
+    def set_compare_result(self, compare_result: NormalizedDiffResult | None) -> None:
+        self.compare_result = compare_result
+        self.inspector.render(build_channel_inspector_model(self.selected_row, self.compare_result))
 
     def layout_summary(self) -> str:
         return "\n".join(

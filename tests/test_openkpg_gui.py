@@ -325,6 +325,55 @@ class OpenKPGGuiTests(unittest.TestCase):
         self.assertEqual(loaded.channel_stride, "0x80")
         self.assertEqual(loaded.channel_count, 64)
 
+    def test_property_model_generation(self) -> None:
+        helpers = importlib.import_module("openkpg.gui.helpers")
+        inspector = importlib.import_module("openkpg.gui.property_inspector")
+        row = helpers.extract_channel_records(bytes(range(0x40)), start=0, stride=0x40, count=1)[0]
+
+        model = inspector.build_channel_inspector_model(row)
+
+        sections = {section.title: dict(section.properties) for section in model.sections}
+        self.assertEqual(sections["General"]["Channel number"], "1")
+        self.assertEqual(sections["General"]["Record offset"], "0x00000000")
+        self.assertEqual(sections["General"]["Record size"], "64 bytes")
+        self.assertEqual(sections["General"]["Table index"], "0")
+        self.assertEqual(sections["Frequency (Experimental)"]["RX bytes"], "05 06 07")
+        self.assertEqual(sections["Frequency (Experimental)"]["Status"], "Encoding not yet decoded")
+        self.assertEqual(sections["Record Structure"]["Marker byte +0x08"], "08")
+
+    def test_property_model_empty_no_compare_state(self) -> None:
+        inspector = importlib.import_module("openkpg.gui.property_inspector")
+
+        model = inspector.build_channel_inspector_model(None)
+
+        sections = {section.title: dict(section.properties) for section in model.sections}
+        self.assertEqual(sections["General"]["Status"], "No channel selected")
+        self.assertEqual(sections["Compare"]["Changed fields"], "No compare file loaded")
+        self.assertEqual(sections["Compare"]["Changed byte count"], "0")
+
+    def test_property_model_compare_summary_generation(self) -> None:
+        helpers = importlib.import_module("openkpg.gui.helpers")
+        inspector = importlib.import_module("openkpg.gui.property_inspector")
+        row = helpers.extract_channel_records(
+            b"\x00" * (0x5E80 + 0x40),
+            start=0x5E80,
+            stride=0x40,
+            count=1,
+        )[0]
+        left = b"\x00" * (0x5E80 + 0x40)
+        right = bytearray(left)
+        right[0x5E85] = 0x99
+        right[0x5E8C] = 0x77
+        result = helpers.normalized_differences(left, bytes(right), limit=10)
+
+        model = inspector.build_channel_inspector_model(row, result)
+
+        sections = {section.title: dict(section.properties) for section in model.sections}
+        self.assertEqual(sections["Compare"]["Changed byte count"], "2")
+        self.assertIn("RX frequency", sections["Compare"]["Changed fields"])
+        self.assertIn("channel record +0x0c", sections["Compare"]["Changed fields"])
+        self.assertEqual(sections["Compare"]["Changed offsets"], "+0x05, +0x0c")
+
     def test_backend_load_path_used_by_gui_can_load_fixture(self) -> None:
         module = importlib.import_module("openkpg.backend")
         backend = module.OpenKPGProjectBackend()

@@ -26,12 +26,20 @@ COMPARE_DEFAULT_LIMIT = 500
 class CompareTab:
     tab_title = "Compare"
 
-    def __init__(self, notebook: ttk.Notebook, show_error: object, show_info: object, status_callback: object) -> None:
+    def __init__(
+        self,
+        notebook: ttk.Notebook,
+        show_error: object,
+        show_info: object,
+        status_callback: object,
+        result_callback: object | None = None,
+    ) -> None:
         if tk is None or ttk is None:
             raise RuntimeError("tkinter is not available in this Python installation")
         self.show_error = show_error
         self.show_info = show_info
         self.status_callback = status_callback
+        self.result_callback = result_callback
         self.baseline_path: Path | None = None
         self.modified_path: Path | None = None
         self.baseline_bytes: bytes | None = None
@@ -150,6 +158,8 @@ class CompareTab:
 
         self.latest_result = result
         self.populate(result)
+        if self.result_callback is not None:
+            self.result_callback(result)
         self.status_callback("Compare complete")
 
     def populate(self, result: NormalizedDiffResult) -> None:

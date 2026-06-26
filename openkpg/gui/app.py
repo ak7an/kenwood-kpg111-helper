@@ -138,6 +138,7 @@ class OpenKPGTkApp:
             self._show_error,
             self._show_info,
             self._set_status_message,
+            result_callback=self.channel_tab.set_compare_result,
         )
 
     def open_dat(self) -> None:
