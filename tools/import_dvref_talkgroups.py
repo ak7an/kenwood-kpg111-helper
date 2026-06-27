@@ -40,6 +40,7 @@ from kpg111.writer import (
 DEFAULT_DECODE_KEY = 0x5B
 TALK_GROUP_TABLE = "talk_groups"
 TALK_GROUP_TABLE_NAME = "Talk Groups"
+TABLE_FULL_REASON = "no empty slot available within scanned table capacity"
 TG_NUMBER_COLUMNS = (
     "Reflector/TG Number",
     "TG Number",
@@ -82,11 +83,27 @@ def parse_args() -> argparse.Namespace:
         help="Maximum decoded records to scan per table (default: 1024)",
     )
     parser.add_argument(
+        "--talk-group-capacity",
+        type=int,
+        help="Explicit scanned/allowed talk group table capacity, e.g. 400",
+    )
+    parser.add_argument(
         "--allow-overwrite-input",
         action="store_true",
         help="Allow --output to be the same path as --baseline.",
     )
     return parser.parse_args()
+
+
+def effective_talk_group_capacity(args: argparse.Namespace) -> int:
+    capacity = (
+        args.talk_group_capacity
+        if args.talk_group_capacity is not None
+        else args.max_records
+    )
+    if capacity <= 0:
+        raise WriterError("--talk-group-capacity must be > 0")
+    return capacity
 
 
 def same_path(left: Path, right: Path) -> bool:
@@ -135,9 +152,8 @@ def normalize_name(tg_id: int, value: str) -> str:
     ascii_text = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     ascii_text = re.sub(r"[^A-Za-z0-9 /_-]+", " ", ascii_text).upper()
     ascii_text = re.sub(r"\s+", " ", ascii_text).strip()
-    prefix = str(tg_id)
     if ascii_text:
-        name = f"{prefix} {ascii_text}"
+        name = ascii_text
     else:
         name = f"TG{tg_id}"
     return name[:NAME_LENGTH].rstrip() or f"TG{tg_id}"[:NAME_LENGTH]
@@ -156,10 +172,11 @@ def import_records(rows: list[DvrefRow], source: Path) -> list[ImportRecord]:
     ]
 
 
-def validate_plan(plan: MergePlan) -> None:
+def validate_plan(plan: MergePlan, talk_group_capacity: int) -> None:
     bad_actions = [
         action for action in plan.actions
         if action.action in {"invalid", "duplicate_name_id_diff"}
+        and not is_table_full_skip(action)
     ]
     if bad_actions:
         details = "; ".join(
@@ -167,6 +184,18 @@ def validate_plan(plan: MergePlan) -> None:
             for action in bad_actions[:10]
         )
         raise WriterError(f"merge plan has rejected/conflicting rows: {details}")
+    out_of_capacity = [
+        action for action in plan.actions
+        if action.chosen_slot is not None and action.chosen_slot >= talk_group_capacity
+    ]
+    if out_of_capacity:
+        details = "; ".join(
+            f"row {action.source_row} TG {action.numeric_id} slot {action.chosen_slot}"
+            for action in out_of_capacity[:10]
+        )
+        raise WriterError(
+            f"merge plan exceeds talk group capacity {talk_group_capacity}: {details}"
+        )
 
 
 def apply_plan(data: bytes, decode_key: int, plan: MergePlan) -> bytes:
@@ -190,6 +219,8 @@ def apply_plan(data: bytes, decode_key: int, plan: MergePlan) -> bytes:
             continue
         if action.action == "new_record":
             candidate = add_talk_group_record(candidate, decode_key, action)
+            continue
+        if is_table_full_skip(action):
             continue
         raise WriterError(f"unsupported planner action: {action.action}")
     return candidate
@@ -255,7 +286,13 @@ def allowed_ranges_for_plan(plan: MergePlan) -> list[ByteRange]:
     return ranges
 
 
-def verify_output(data: bytes, candidate: bytes, decode_key: int, plan: MergePlan) -> None:
+def verify_output(
+    data: bytes,
+    candidate: bytes,
+    decode_key: int,
+    plan: MergePlan,
+    talk_group_capacity: int,
+) -> None:
     verify_only_ranges_changed(data, candidate, allowed_ranges_for_plan(plan))
     expected = {
         action.chosen_slot: (action.name, action.numeric_id)
@@ -269,7 +306,7 @@ def verify_output(data: bytes, candidate: bytes, decode_key: int, plan: MergePla
         TALK_GROUP_TABLE_START,
         decode_key,
         include_empty=True,
-        max_records=1024,
+        max_records=talk_group_capacity,
     )
     by_slot = {record.slot: record for record in records}
     for slot, (name, numeric_id) in expected.items():
@@ -286,6 +323,27 @@ def action_counts(plan: MergePlan) -> Counter[str]:
     return Counter(action.action for action in plan.actions)
 
 
+def is_table_full_skip(action: PlannedAction) -> bool:
+    return action.action == "invalid" and action.reason == TABLE_FULL_REASON
+
+
+def table_full_skips(plan: MergePlan) -> list[PlannedAction]:
+    return [action for action in plan.actions if is_table_full_skip(action)]
+
+
+def existing_talk_group_count(data: bytes, decode_key: int, talk_group_capacity: int) -> int:
+    records = decode_table(
+        data,
+        TALK_GROUP_TABLE,
+        TALK_GROUP_TABLE_NAME,
+        TALK_GROUP_TABLE_START,
+        decode_key,
+        include_empty=True,
+        max_records=talk_group_capacity,
+    )
+    return sum(1 for record in records if record.name and not record.empty)
+
+
 def render_range(changed_range: ByteRange) -> str:
     last = changed_range.end - 1
     if changed_range.length == 1:
@@ -293,13 +351,32 @@ def render_range(changed_range: ByteRange) -> str:
     return f"0x{changed_range.start:08x}..0x{last:08x}"
 
 
-def print_summary(input_csv: Path, baseline: Path, output: Path, rows: list[DvrefRow], plan: MergePlan, ranges: list[ByteRange]) -> None:
+def print_summary(
+    input_csv: Path,
+    baseline: Path,
+    output: Path,
+    rows: list[DvrefRow],
+    plan: MergePlan,
+    ranges: list[ByteRange],
+    talk_group_capacity: int,
+    existing_talk_groups: int,
+) -> None:
     counts = action_counts(plan)
+    skipped_table_full = table_full_skips(plan)
     print("DVREF Talk Group Import Summary")
     print(f"Input CSV: {input_csv}")
     print(f"Baseline DAT: {baseline}")
     print(f"Output DAT: {output}")
+    print(f"Talk group capacity: {talk_group_capacity}")
     print(f"DVREF rows after duplicate TG removal: {len(rows)}")
+    print(f"Existing TGs: {existing_talk_groups}")
+    print(f"Empty slots: {plan.empty_slots_available[TALK_GROUP_TABLE] + counts.get('new_record', 0)}")
+    print(f"Imported: {counts.get('new_record', 0)}")
+    print(f"Updated: {counts.get('possible_update', 0)}")
+    print(f"Skipped (table full): {len(skipped_table_full)}")
+    if skipped_table_full:
+        skipped_ids = ", ".join(str(action.numeric_id) for action in skipped_table_full)
+        print(f"TG IDs skipped (table full): {skipped_ids}")
     print(f"New talk groups: {counts.get('new_record', 0)}")
     print(f"Updated same-ID talk groups: {counts.get('possible_update', 0)}")
     print(f"Exact duplicates ignored: {counts.get('duplicate_exact', 0)}")
@@ -315,18 +392,29 @@ def main() -> int:
     try:
         if same_path(args.baseline, args.output) and not args.allow_overwrite_input:
             raise WriterError("refusing to overwrite baseline without --allow-overwrite-input")
+        talk_group_capacity = effective_talk_group_capacity(args)
         rows = load_dvref_rows(args.input)
         imports = import_records(rows, args.input)
-        plan = plan_merge(args.baseline, args.decode_key, imports, max_records=args.max_records)
-        validate_plan(plan)
+        plan = plan_merge(args.baseline, args.decode_key, imports, max_records=talk_group_capacity)
+        validate_plan(plan, talk_group_capacity)
         original = load_dat(args.baseline)
+        existing_talk_groups = existing_talk_group_count(original, args.decode_key, talk_group_capacity)
         candidate = apply_plan(original, args.decode_key, plan)
-        verify_output(original, candidate, args.decode_key, plan)
+        verify_output(original, candidate, args.decode_key, plan, talk_group_capacity)
         ranges = changed_byte_ranges(original, candidate)
         write_result(args.output, WriteResult(candidate, ranges, TALK_GROUP_TABLE, -1, -1))
         if load_dat(args.output) != candidate:
             raise WriterError("written output does not match candidate bytes")
-        print_summary(args.input, args.baseline, args.output, rows, plan, ranges)
+        print_summary(
+            args.input,
+            args.baseline,
+            args.output,
+            rows,
+            plan,
+            ranges,
+            talk_group_capacity,
+            existing_talk_groups,
+        )
         return 0
     except (OSError, ValueError, WriterError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
