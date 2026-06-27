@@ -395,6 +395,9 @@ def render_report(samples: list[DatasetSample], baseline_path: Path, channel: in
     for field in ("rx", "tx"):
         lines.extend(render_byte_position_analysis(samples, field.upper(), field))
         lines.append("")
+    lines.extend(["## RX Step Analysis"])
+    lines.extend(render_rx_step_analysis(samples))
+    lines.append("")
     lines.extend(["## Transform Observations"])
     lines.extend(render_transform_table(samples))
     lines.extend(["", "## Adjacent Transitions"])
@@ -496,6 +499,90 @@ def render_transform_table(samples: list[DatasetSample]) -> list[str]:
         ],
         rows,
     )
+
+
+def rx_only_samples(samples: list[DatasetSample]) -> list[DatasetSample]:
+    """Return selected dataset samples with parsed frequencies for RX step analysis.
+
+    The caller controls RX-vs-TX inclusion through --input-glob. Do not infer
+    inclusion from filename labels here; experiments use multiple naming styles.
+    """
+    return dedupe_rx_step_samples(
+        [sample for sample in samples if sample.frequency_hz is not None]
+    )
+
+
+def dedupe_rx_step_samples(samples: list[DatasetSample]) -> list[DatasetSample]:
+    seen: set[tuple[int | None, bytes]] = set()
+    deduped = []
+    for sample in sorted(samples, key=lambda item: (item.frequency_hz or 0, str(item.path))):
+        key = (sample.frequency_hz, sample.rx.raw)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(sample)
+    return deduped
+
+
+def render_rx_step_analysis(samples: list[DatasetSample]) -> list[str]:
+    rx_samples = rx_only_samples(samples)
+    lines: list[str] = []
+    if not rx_samples:
+        lines.append("No selected samples with parsed frequencies found.")
+        return lines
+
+    lines.extend(render_rx_step_table(rx_samples))
+    ten_khz = samples_for_frequencies(
+        rx_samples,
+        (146_500_000, 146_510_000, 146_520_000, 146_530_000),
+    )
+    if ten_khz:
+        lines.extend(["", "### 10 kHz Samples", ""])
+        lines.extend(render_rx_step_table(ten_khz))
+    return lines
+
+
+def samples_for_frequencies(samples: list[DatasetSample], frequencies_hz: tuple[int, ...]) -> list[DatasetSample]:
+    by_frequency = {sample.frequency_hz: sample for sample in samples}
+    if not all(frequency in by_frequency for frequency in frequencies_hz):
+        return []
+    return [by_frequency[frequency] for frequency in frequencies_hz]
+
+
+def render_rx_step_table(samples: list[DatasetSample]) -> list[str]:
+    rows = []
+    previous: DatasetSample | None = None
+    for sample in samples:
+        rows.append(
+            [
+                sample.frequency_text,
+                "" if previous is None else f"{(sample.frequency_hz - previous.frequency_hz) // 1000:+d}",
+                fmt_bytes(sample.rx.raw),
+                "" if previous is None else fmt_bytes(xor_bytes(previous.rx.raw, sample.rx.raw)),
+                "" if previous is None else f"{sample.rx.big_endian - previous.rx.big_endian:+d}",
+                "" if previous is None else f"{sample.rx.little_endian - previous.rx.little_endian:+d}",
+                "" if previous is None else str(hamming_distance(previous.rx.raw, sample.rx.raw)),
+            ]
+        )
+        previous = sample
+    return markdown_table(
+        [
+            "frequency",
+            "frequency delta kHz",
+            "rx bytes",
+            "rx byte xor from previous sample",
+            "rx integer big endian delta",
+            "rx integer little endian delta",
+            "hamming distance",
+        ],
+        rows,
+    )
+
+
+def xor_bytes(left: bytes, right: bytes) -> bytes:
+    if len(left) != len(right):
+        raise ValueError("byte sequences must be the same length")
+    return bytes(left_byte ^ right_byte for left_byte, right_byte in zip(left, right))
 
 
 def render_transition_table(samples: list[DatasetSample]) -> list[str]:

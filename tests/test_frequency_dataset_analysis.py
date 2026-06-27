@@ -8,6 +8,7 @@ from tools.frequency_dataset_analysis import (
     hamming_distance,
     parse_frequency_from_filename,
     render_report,
+    render_rx_step_analysis,
     write_csv,
 )
 
@@ -81,6 +82,36 @@ class FrequencyDatasetAnalysisTests(unittest.TestCase):
             bit_transition_summary(bytes.fromhex("00 01 03"), bytes.fromhex("01 03 02")),
             "byte0: 0; byte1: 1; byte2: 0",
         )
+
+    def test_rx_step_analysis_uses_selected_dataset_samples_and_10khz_subset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            samples = []
+            for text, rx_hex in (
+                ("146000", "c1 89 f2"),
+                ("146500", "e1 28 fa"),
+                ("146510", "f1 d1 fa"),
+                ("146520", "81 f6 fa"),
+                ("146530", "91 9f fa"),
+            ):
+                dat_file = root / f"Line2_RX_{text}.dat"
+                data = bytearray(b"H" * 0x40 + b"\x00" * 0x80)
+                data[0x45:0x48] = bytes.fromhex(rx_hex)
+                data[0x49:0x4c] = bytes.fromhex("01 dc f4")
+                dat_file.write_bytes(bytes(data))
+                samples.append(dat_file)
+
+            duplicate = root / "duplicate_Line2_RX_146520.dat"
+            duplicate.write_bytes(samples[3].read_bytes())
+            samples.append(duplicate)
+
+            analyzed = analyze_dataset(samples, baseline_path=samples[0], start=0, stride=0x40)
+            rendered = "\n".join(render_rx_step_analysis(analyzed))
+
+            self.assertIn("| 146.000 |", rendered)
+            self.assertIn("| 146.510 | +10 | f1 d1 fa | 10 f9 00 |", rendered)
+            self.assertIn("### 10 kHz Samples", rendered)
+            self.assertEqual(rendered.count("| 146.520 |"), 2)
 
 
 if __name__ == "__main__":
