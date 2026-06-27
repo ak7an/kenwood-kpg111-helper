@@ -12,13 +12,8 @@ except ModuleNotFoundError:  # pragma: no cover - depends on Python installation
     ttk = None
 
 from .helpers import (
-    CHANNEL_FREQUENCY_SIZE,
-    CHANNEL_RECORD_SIZE,
-    CHANNEL_RX_OFFSET,
-    CHANNEL_TX_OFFSET,
     NormalizedDiffResult,
     NormalizedDifference,
-    decoded_frequency_display,
     format_hex_bytes,
     format_offset,
     normalized_differences,
@@ -100,8 +95,6 @@ class CompareTab:
                 "channel",
                 "channel_relative_offset",
                 "label",
-                "raw_field",
-                "decoded_field",
             ),
             headings={
                 "offset": "Offset",
@@ -111,8 +104,6 @@ class CompareTab:
                 "channel": "Channel",
                 "channel_relative_offset": "Channel offset",
                 "label": "Region",
-                "raw_field": "Raw",
-                "decoded_field": "Decoded",
             },
         )
         install_tree_context_menu(self.table, self.root, self.status_callback)
@@ -168,16 +159,9 @@ class CompareTab:
         self.mask_var.set(f"0x{result.dominant_xor_mask:02x}")
         self.payload_compared_var.set(str(result.payload_bytes_compared))
         self.diff_count_var.set(str(result.normalized_differing_byte_count))
-        insert_tree_rows(
-            self.table,
-            [self._row_values(difference, result.dominant_xor_mask) for difference in result.differences],
-        )
+        insert_tree_rows(self.table, [self._row_values(difference) for difference in result.differences])
 
-    def _row_values(
-        self,
-        difference: NormalizedDifference,
-        xor_mask: int = 0x00,
-    ) -> tuple[str, str, str, str, str, str, str, str, str]:
+    def _row_values(self, difference: NormalizedDifference) -> tuple[str, str, str, str, str, str, str]:
         location = difference.channel_location
         if location is None:
             channel = ""
@@ -187,7 +171,6 @@ class CompareTab:
             channel = str(location.channel)
             relative_offset = f"+0x{location.relative_offset:02x}"
             label = location.label
-        raw_field, decoded_field = self._frequency_field_detail(difference, xor_mask)
         return (
             format_offset(difference.offset),
             format_hex_bytes(bytes([difference.left_byte])),
@@ -196,45 +179,6 @@ class CompareTab:
             channel,
             relative_offset,
             label,
-            raw_field,
-            decoded_field,
-        )
-
-    def _frequency_field_detail(
-        self,
-        difference: NormalizedDifference,
-        xor_mask: int,
-    ) -> tuple[str, str]:
-        location = difference.channel_location
-        if location is None or location.relative_offset not in range(
-            CHANNEL_RX_OFFSET,
-            CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE,
-        ) and location.relative_offset not in range(
-            CHANNEL_TX_OFFSET,
-            CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE,
-        ):
-            return "", ""
-        if self.modified_bytes is None:
-            return "", ""
-
-        record_start = difference.offset - location.relative_offset
-        field_relative = (
-            CHANNEL_RX_OFFSET
-            if CHANNEL_RX_OFFSET <= location.relative_offset < CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE
-            else CHANNEL_TX_OFFSET
-        )
-        field_start = record_start + field_relative
-        field_end = field_start + CHANNEL_FREQUENCY_SIZE
-        if field_start < 0 or field_end > len(self.modified_bytes):
-            return "", ""
-        if field_end > record_start + CHANNEL_RECORD_SIZE:
-            return "", ""
-
-        raw_file_field = self.modified_bytes[field_start:field_end]
-        normalized_field = bytes(byte ^ xor_mask for byte in raw_file_field)
-        return (
-            f"Raw: {format_hex_bytes(normalized_field)}",
-            f"Decoded: {decoded_frequency_display(normalized_field, include_mhz_suffix=True)}",
         )
 
     def refresh(self) -> None:

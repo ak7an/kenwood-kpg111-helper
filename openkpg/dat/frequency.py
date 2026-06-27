@@ -1,8 +1,9 @@
-"""KPG111 channel frequency field helpers.
+"""Experimental KPG111 channel frequency field helpers.
 
 Channel frequency fields observed so far store only the low 24 bits of the
 frequency integer. Full MHz reconstruction requires band/context because those
-three bytes do not carry the high bits.
+three bytes do not carry the high bits. These helpers are research utilities and
+are intentionally unused by the default GUI frequency display.
 """
 
 from __future__ import annotations

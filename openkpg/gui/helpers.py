@@ -7,13 +7,6 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from openkpg.dat.frequency import (
-    decode_frequency_low24,
-    format_frequency_mhz,
-    reconstruct_frequency,
-)
-
-
 DAT_HEADER_SIZE = 0x40
 HEX_VIEW_DEFAULT_LENGTH = 4096
 HEXDUMP_WIDTH = 16
@@ -28,19 +21,14 @@ CHANNEL_TX_OFFSET = 0x09
 CHANNEL_MARKER_08_OFFSET = 0x08
 CHANNEL_MARKER_0C_OFFSET = 0x0C
 CHANNEL_FREQUENCY_SIZE = 3
-CHANNEL_DISPLAY_FREQUENCY_CANDIDATES = ((144_000_000, 148_000_000),)
 
 
 @dataclass(frozen=True)
 class ChannelRecordRow:
     channel: int
     offset: int
-    rx_frequency: str
-    tx_frequency: str
     rx_bytes: str
     tx_bytes: str
-    rx_low24_decoded: str
-    tx_low24_decoded: str
     marker_08: str
     marker_0c: str
     ascii_preview: str
@@ -103,27 +91,6 @@ def format_offset(offset: int | None) -> str:
 
 def format_hex_bytes(data: bytes) -> str:
     return data.hex(" ")
-
-
-def format_frequency_low24(raw: bytes) -> str:
-    return str(decode_frequency_low24(raw))
-
-
-def format_frequency_low24_hex(low24: int) -> str:
-    return f"0x{low24:06x}"
-
-
-def decoded_frequency_display(
-    raw: bytes,
-    candidates: tuple[tuple[int, int], ...] = CHANNEL_DISPLAY_FREQUENCY_CANDIDATES,
-    include_mhz_suffix: bool = False,
-) -> str:
-    low24 = decode_frequency_low24(raw)
-    reconstructed = reconstruct_frequency(low24, candidates)
-    if reconstructed is None:
-        return f"Unknown band\nLow24 = {format_frequency_low24_hex(low24)}"
-    suffix = " MHz" if include_mhz_suffix else ""
-    return f"{format_frequency_mhz(reconstructed)}{suffix}"
 
 
 def format_bytes(data: bytes) -> str:
@@ -283,24 +250,14 @@ def channel_row_model(
         if len(record) < CHANNEL_RECORD_SIZE:
             break
         normalized_record = normalize_record(record, xor_mask)
-        rx_frequency_bytes = record[CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE]
-        tx_frequency_bytes = record[CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE]
-        normalized_rx_frequency_bytes = normalized_record[
-            CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE
-        ]
-        normalized_tx_frequency_bytes = normalized_record[
-            CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE
-        ]
+        rx_bytes = record[CHANNEL_RX_OFFSET : CHANNEL_RX_OFFSET + CHANNEL_FREQUENCY_SIZE]
+        tx_bytes = record[CHANNEL_TX_OFFSET : CHANNEL_TX_OFFSET + CHANNEL_FREQUENCY_SIZE]
         rows.append(
             ChannelRecordRow(
                 channel=index + 1,
                 offset=offset,
-                rx_frequency=decoded_frequency_display(normalized_rx_frequency_bytes),
-                tx_frequency=decoded_frequency_display(normalized_tx_frequency_bytes),
-                rx_bytes=format_hex_bytes(rx_frequency_bytes),
-                tx_bytes=format_hex_bytes(tx_frequency_bytes),
-                rx_low24_decoded=format_frequency_low24(normalized_rx_frequency_bytes),
-                tx_low24_decoded=format_frequency_low24(normalized_tx_frequency_bytes),
+                rx_bytes=format_hex_bytes(rx_bytes),
+                tx_bytes=format_hex_bytes(tx_bytes),
                 marker_08=format_hex_bytes(record[CHANNEL_MARKER_08_OFFSET : CHANNEL_MARKER_08_OFFSET + 1]),
                 marker_0c=format_hex_bytes(record[CHANNEL_MARKER_0C_OFFSET : CHANNEL_MARKER_0C_OFFSET + 1]),
                 ascii_preview=ascii_safe(record[:16]),
