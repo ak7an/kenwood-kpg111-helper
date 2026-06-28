@@ -194,3 +194,68 @@ Every unknown field follows the same workflow:
 
 The repository values reproducible experiments over speculation.
 
+
+Talk Group Numeric ID Encoding Discovery
+----------------------------------------
+
+Confirmed by controlled KPG111 experiment:
+
+File pair:
+
+- AK7AN_Travel_400TG_Normalized.dat
+- AK7AN_Travel_400TG_Edit_31490_to_31491.dat
+
+Procedure:
+
+- Opened normalized DAT in KPG111.
+- Changed exactly one visible Talk Group number:
+  31490 -> 31491
+- Saved as a new DAT.
+- Normalized payload XOR before diffing.
+
+Result:
+
+Only one byte changed after normalization:
+
+- TG physical slot: 289
+- Absolute offset: 0x173b3
+- Record-relative offset: +0x13
+- Before: 0x53
+- After:  0x52
+
+The record's +0x13/+0x14 field changed from:
+
+- 0x2a53 little-endian for TG 31490
+- 0x2a52 little-endian for TG 31491
+
+Derived encoding:
+
+    stored_tg_id = tg_id ^ 0x5151
+    tg_id = stored_tg_id ^ 0x5151
+
+Field location:
+
+    record +0x13..+0x14
+    little-endian uint16 XOR 0x5151
+
+Full-file validation:
+
+All numeric-prefixed Talk Group names in AK7AN_Travel_400TG_Normalized.dat
+matched this encoding with zero mismatches.
+
+Important consequence:
+
+A byte value of 0xAE inside the numeric field is valid encoded data.
+It must not be interpreted as an empty byte by itself.
+
+Example:
+
+    TG 23551
+    23551 ^ 0x5151 = 0x0aae
+    stored little-endian = ae 0a
+
+Therefore slot 285 is a valid Talk Group record, not malformed.
+
+Do not generalize this rule to Individual IDs yet.
+The controlled experiment only proves Talk Group numeric encoding for this KPG111 DAT format.
+
