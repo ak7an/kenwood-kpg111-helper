@@ -176,3 +176,21 @@ Do not restart already disproven investigations.
 
 Read this file before beginning a new ChatGPT session.
 
+
+Reverse Engineering Method
+--------------------------
+
+Every unknown field follows the same workflow:
+
+1. Create baseline DAT.
+2. Modify exactly one CPS setting.
+3. Save new DAT.
+4. Normalize changing metadata.
+5. Diff against baseline.
+6. Identify changed bytes.
+7. Build read-only diagnostic.
+8. Prove or disprove hypotheses.
+9. Never implement write support until proven.
+
+The repository values reproducible experiments over speculation.
+
