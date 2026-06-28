@@ -259,3 +259,73 @@ Therefore slot 285 is a valid Talk Group record, not malformed.
 Do not generalize this rule to Individual IDs yet.
 The controlled experiment only proves Talk Group numeric encoding for this KPG111 DAT format.
 
+
+Talk Group Table Start / Capacity Discovery
+-------------------------------------------
+
+New controlled ladder experiment:
+
+Starting file:
+
+- AK7AN_Blank.dat
+
+KPG111-created ladder files:
+
+- AK7AN_TG_Ladder_001.dat
+- AK7AN_TG_Ladder_002.dat
+- AK7AN_TG_Ladder_003.dat
+- AK7AN_TG_Ladder_010.dat
+
+Procedure:
+
+- Created 1, 2, 3, and 10 Talk Groups in KPG111.
+- Used default KPG111 Talk Group names.
+- Normalized payload XOR before diffing each ladder file against blank.
+
+Result:
+
+Each added Talk Group changed exactly:
+
+- 14 name bytes at record +0x01..+0x0e
+- 2 numeric bytes at record +0x13..+0x14
+
+The first ladder TG appears at:
+
+    0x14940
+
+Record spacing is:
+
+    0x20 bytes
+
+Therefore for the blank/default ladder DAT, KPG111 writes the Talk Group table at:
+
+    0x14940
+
+This disproves the assumption that the Talk Group table always begins at:
+
+    0x14f80
+
+Important consequence:
+
+Talk Group table start is DAT-layout dependent and must not be hardcoded.
+
+The earlier AK7AN travel/imported DAT contains a long contiguous sequence of valid
+Talk Group records that can be recognized at many shifted 32-byte-aligned windows.
+Record-shape scanning alone cannot prove the true table start, because any shifted
+window inside a dense TG table also appears valid.
+
+A metadata/partition descriptor likely determines actual logical table start and
+capacity, but direct searches for raw little-endian values 0x14940, 0x14f80,
+397, 400, 340, 400*32, and 340*32 did not find an obvious plaintext descriptor.
+
+Current proven record layout remains:
+
+    record +0x01..+0x0e : encoded name
+    record +0x13..+0x14 : TG numeric ID, uint16 little-endian XOR 0x5151
+
+OpenKPG next direction:
+
+- Stop treating TALK_GROUP_TABLE_START as a universal constant.
+- Add diagnostics to infer or discover table locations from DAT structure.
+- Do not modify importer write behavior until table-start discovery is proven.
+
