@@ -100,6 +100,12 @@ def parse_args() -> argparse.Namespace:
         help="Explicit scanned/allowed talk group table capacity, e.g. 400",
     )
     parser.add_argument(
+        "--talk-group-start",
+        type=lambda value: int(value, 0),
+        default=TALK_GROUP_TABLE_START,
+        help="Explicit Talk Group table start offset, e.g. 0x14940 or 0x14f80",
+    )
+    parser.add_argument(
         "--mode",
         choices=("merge", "replace"),
         default="merge",
@@ -216,9 +222,14 @@ def validate_plan(plan: MergePlan, talk_group_capacity: int) -> None:
         )
 
 
-def apply_plan(data: bytes, decode_key: int, plan: MergePlan) -> bytes:
+def apply_plan(
+    data: bytes,
+    decode_key: int,
+    plan: MergePlan,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> bytes:
     candidate = data
-    template = first_occupied_talk_group_record(data, decode_key)
+    template = first_occupied_talk_group_record(data, decode_key, talk_group_start)
     for action in plan.actions:
         if action.table != TALK_GROUP_TABLE_NAME:
             raise WriterError(f"refusing non-talk-group action: {action.table}")
@@ -280,15 +291,19 @@ def build_talk_group_record(template: bytes, name: str, numeric_id: int, decode_
     return bytes(record)
 
 
-def first_occupied_talk_group_record(data: bytes, decode_key: int) -> bytes:
+def first_occupied_talk_group_record(
+    data: bytes,
+    decode_key: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> bytes:
     records = decode_table(
         data,
         TALK_GROUP_TABLE,
         TALK_GROUP_TABLE_NAME,
-        TALK_GROUP_TABLE_START,
+        talk_group_start,
         decode_key,
         include_empty=False,
-        max_records=max_talk_group_records(data),
+        max_records=max_talk_group_records(data, talk_group_start),
     )
     for record in records:
         if record.name and not record.empty:
@@ -298,20 +313,25 @@ def first_occupied_talk_group_record(data: bytes, decode_key: int) -> bytes:
     raise WriterError("no occupied Talk Group record available for template")
 
 
-def empty_talk_group_record(data: bytes, decode_key: int, talk_group_capacity: int) -> bytes:
+def empty_talk_group_record(
+    data: bytes,
+    decode_key: int,
+    talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> bytes:
     for slot in range(talk_group_capacity):
-        offset = TALK_GROUP_TABLE_START + slot * RECORD_SIZE
+        offset = talk_group_start + slot * RECORD_SIZE
         record = data[offset : offset + RECORD_SIZE]
         if len(record) != RECORD_SIZE:
             break
         if len(set(record)) == 1:
             return record
-    template = first_occupied_talk_group_record(data, decode_key)
+    template = first_occupied_talk_group_record(data, decode_key, talk_group_start)
     return bytes([template[0]]) * RECORD_SIZE
 
 
-def max_talk_group_records(data: bytes) -> int:
-    return max(0, (len(data) - TALK_GROUP_TABLE_START) // RECORD_SIZE)
+def max_talk_group_records(data: bytes, talk_group_start: int = TALK_GROUP_TABLE_START) -> int:
+    return max(0, (len(data) - talk_group_start) // RECORD_SIZE)
 
 
 def validate_name(name: str) -> None:
@@ -357,11 +377,14 @@ def allowed_ranges_for_plan(plan: MergePlan) -> list[ByteRange]:
     return ranges
 
 
-def allowed_talk_group_capacity_ranges(talk_group_capacity: int) -> list[ByteRange]:
+def allowed_talk_group_capacity_ranges(
+    talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> list[ByteRange]:
     return [
         ByteRange(
-            TALK_GROUP_TABLE_START,
-            TALK_GROUP_TABLE_START + talk_group_capacity * RECORD_SIZE,
+            talk_group_start,
+            talk_group_start + talk_group_capacity * RECORD_SIZE,
         )
     ]
 
@@ -372,6 +395,7 @@ def verify_output(
     decode_key: int,
     plan: MergePlan,
     talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
 ) -> None:
     verify_only_ranges_changed(data, candidate, allowed_ranges_for_plan(plan))
     expected = {
@@ -383,7 +407,7 @@ def verify_output(
         candidate,
         TALK_GROUP_TABLE,
         TALK_GROUP_TABLE_NAME,
-        TALK_GROUP_TABLE_START,
+        talk_group_start,
         decode_key,
         include_empty=True,
         max_records=talk_group_capacity,
@@ -399,12 +423,23 @@ def verify_output(
             )
 
 
-def apply_replace(data: bytes, decode_key: int, rows: list[DvrefRow], talk_group_capacity: int) -> bytes:
-    if talk_group_capacity > max_talk_group_records(data):
+def apply_replace(
+    data: bytes,
+    decode_key: int,
+    rows: list[DvrefRow],
+    talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> bytes:
+    if talk_group_capacity > max_talk_group_records(data, talk_group_start):
         raise WriterError("talk group capacity extends beyond DAT size")
 
-    template = first_occupied_talk_group_record(data, decode_key)
-    empty_record = empty_talk_group_record(data, decode_key, talk_group_capacity)
+    template = first_occupied_talk_group_record(data, decode_key, talk_group_start)
+    empty_record = empty_talk_group_record(
+        data,
+        decode_key,
+        talk_group_capacity,
+        talk_group_start,
+    )
     candidate = bytearray(data)
 
     for slot in range(talk_group_capacity):
@@ -425,14 +460,19 @@ def verify_replace_output(
     decode_key: int,
     rows: list[DvrefRow],
     talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
 ) -> None:
-    verify_only_ranges_changed(data, candidate, allowed_talk_group_capacity_ranges(talk_group_capacity))
+    verify_only_ranges_changed(
+        data,
+        candidate,
+        allowed_talk_group_capacity_ranges(talk_group_capacity, talk_group_start),
+    )
     expected_rows = rows[:talk_group_capacity]
     records = decode_table(
         candidate,
         TALK_GROUP_TABLE,
         TALK_GROUP_TABLE_NAME,
-        TALK_GROUP_TABLE_START,
+        talk_group_start,
         decode_key,
         include_empty=True,
         max_records=talk_group_capacity,
@@ -464,12 +504,17 @@ def table_full_skips(plan: MergePlan) -> list[PlannedAction]:
     return [action for action in plan.actions if is_table_full_skip(action)]
 
 
-def existing_talk_group_count(data: bytes, decode_key: int, talk_group_capacity: int) -> int:
+def existing_talk_group_count(
+    data: bytes,
+    decode_key: int,
+    talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> int:
     records = decode_table(
         data,
         TALK_GROUP_TABLE,
         TALK_GROUP_TABLE_NAME,
-        TALK_GROUP_TABLE_START,
+        talk_group_start,
         decode_key,
         include_empty=True,
         max_records=talk_group_capacity,
@@ -477,12 +522,17 @@ def existing_talk_group_count(data: bytes, decode_key: int, talk_group_capacity:
     return sum(1 for record in records if record.name and not record.empty)
 
 
-def empty_talk_group_count(data: bytes, decode_key: int, talk_group_capacity: int) -> int:
+def empty_talk_group_count(
+    data: bytes,
+    decode_key: int,
+    talk_group_capacity: int,
+    talk_group_start: int = TALK_GROUP_TABLE_START,
+) -> int:
     records = decode_table(
         data,
         TALK_GROUP_TABLE,
         TALK_GROUP_TABLE_NAME,
-        TALK_GROUP_TABLE_START,
+        talk_group_start,
         decode_key,
         include_empty=True,
         max_records=talk_group_capacity,
@@ -539,17 +589,34 @@ def main() -> int:
         talk_group_capacity = effective_talk_group_capacity(args)
         rows = load_dvref_rows(args.input)
         original = load_dat(args.baseline)
-        if talk_group_capacity > max_talk_group_records(original):
+        if talk_group_capacity > max_talk_group_records(original, args.talk_group_start):
             raise WriterError("talk group capacity extends beyond DAT size")
-        existing_talk_groups = existing_talk_group_count(original, args.decode_key, talk_group_capacity)
-        empty_slots = empty_talk_group_count(original, args.decode_key, talk_group_capacity)
+        existing_talk_groups = existing_talk_group_count(
+            original,
+            args.decode_key,
+            talk_group_capacity,
+            args.talk_group_start,
+        )
+        empty_slots = empty_talk_group_count(
+            original,
+            args.decode_key,
+            talk_group_capacity,
+            args.talk_group_start,
+        )
 
         if args.mode == "merge":
             imports = import_records(rows, args.input)
             plan = plan_merge(args.baseline, args.decode_key, imports, max_records=talk_group_capacity)
             validate_plan(plan, talk_group_capacity)
-            candidate = apply_plan(original, args.decode_key, plan)
-            verify_output(original, candidate, args.decode_key, plan, talk_group_capacity)
+            candidate = apply_plan(original, args.decode_key, plan, args.talk_group_start)
+            verify_output(
+                original,
+                candidate,
+                args.decode_key,
+                plan,
+                talk_group_capacity,
+                args.talk_group_start,
+            )
             counts = action_counts(plan)
             skipped_ids = [action.numeric_id for action in table_full_skips(plan)]
             summary = ImportSummary(
@@ -562,8 +629,21 @@ def main() -> int:
                 empty_slots=empty_slots,
             )
         else:
-            candidate = apply_replace(original, args.decode_key, rows, talk_group_capacity)
-            verify_replace_output(original, candidate, args.decode_key, rows, talk_group_capacity)
+            candidate = apply_replace(
+                original,
+                args.decode_key,
+                rows,
+                talk_group_capacity,
+                args.talk_group_start,
+            )
+            verify_replace_output(
+                original,
+                candidate,
+                args.decode_key,
+                rows,
+                talk_group_capacity,
+                args.talk_group_start,
+            )
             skipped_ids = [row.tg_id for row in rows[talk_group_capacity:]]
             summary = ImportSummary(
                 mode=args.mode,
