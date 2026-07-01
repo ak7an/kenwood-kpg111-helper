@@ -372,3 +372,52 @@ little-endian XOR 0x5151 encoding as Talk Groups.
 A final controlled increment/decrement experiment should be
 performed before declaring the encoding fully proven.
 
+
+Talk Group Cluster Scanner Discovery
+------------------------------------
+
+New diagnostic:
+
+    tools/layout_trigger_check.py
+
+Enhanced with whole-file TG-like cluster scanning.
+
+This was required because fixed candidate starts were insufficient.
+
+Controlled evidence:
+
+- AK7AN_Blank_10TalkGroups.dat
+
+  Whole-file TG-like cluster:
+
+      Start   : 0x12A00
+      Records : 10
+
+  This file changed exactly 160 bytes:
+
+      10 records * 16 changed bytes
+
+  Record pattern:
+
+      +0x01..+0x0E   Name
+      +0x13..+0x14   Numeric ID
+
+- AK7AN_Travel_400TG_Normalized.dat
+
+  Whole-file TG-like cluster:
+
+      Start   : 0x14300
+      Records : 397
+
+Important conclusion:
+
+Earlier fixed TG candidates 0x14940 and 0x14F80 were too narrow.
+OpenKPG must distinguish between:
+
+- first occupied TG-like record
+- physical table start
+- logical table start
+- reserved/empty records before or inside a table
+
+No automatic table-start detection should be implemented until this distinction is proven.
+
