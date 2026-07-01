@@ -329,3 +329,46 @@ OpenKPG next direction:
 - Add diagnostics to infer or discover table locations from DAT structure.
 - Do not modify importer write behavior until table-start discovery is proven.
 
+
+Individual ID Table Discovery
+-----------------------------
+
+Controlled experiments:
+
+- AK7AN_Blank.dat
+- AK7AN_Blank_OneIndividualID.dat
+- AK7AN_Blank_OneIndividualID_EditNumber.dat
+- AK7AN_Blank_TwoIndividualIDs.dat
+
+Confirmed:
+
+- First Individual ID record begins at:
+
+      0x11D80
+
+  in the blank-layout DAT.
+
+- Record size:
+
+      32 bytes
+
+- Adding a second Individual ID creates the next record exactly
+  one record later:
+
+      0x11DA0
+
+- Record layout matches the Talk Group record structure:
+
+      +0x01..+0x0E   Name
+      +0x13..+0x14   Numeric Individual ID
+
+Controlled edit of only the Individual ID number changed only:
+
+      +0x13..+0x14
+
+Strong evidence indicates the numeric field uses the same
+little-endian XOR 0x5151 encoding as Talk Groups.
+
+A final controlled increment/decrement experiment should be
+performed before declaring the encoding fully proven.
+
