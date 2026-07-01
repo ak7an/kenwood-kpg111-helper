@@ -14,6 +14,7 @@ import sys
 HEADER_SIZE = 0x40
 BLANK_TG_START = 0x14940
 TRAVEL_TG_START = 0x14F80
+OBSERVED_TG_START = 0x12A00
 TG_RECORD_SIZE = 32
 TG_RECORD_COUNT = 400
 TG_NAME_START = 0x01
@@ -26,6 +27,7 @@ INDIVIDUAL_ID_RECORD_SIZE = 32
 CHANNEL_START = 0x5E80
 CHANNEL_STRIDE = 0x40
 DEFAULT_WINDOW = 0x100
+DEFAULT_MIN_CLUSTER_RECORDS = 2
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,15 @@ class TgScan:
     changed: bool
 
 
+@dataclass(frozen=True)
+class TgCluster:
+    start: int
+    count: int
+    first_record: TgRecord
+    last_offset: int
+    changed: bool
+
+
 def parse_int(value: str) -> int:
     try:
         return int(value, 0)
@@ -85,6 +96,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_WINDOW,
         help="Bytes before and after known starts for nearby range reporting (default: 0x100)",
     )
+    parser.add_argument(
+        "--min-cluster-records",
+        type=parse_int,
+        default=DEFAULT_MIN_CLUSTER_RECORDS,
+        help="Minimum adjacent TG-like records needed for a whole-file cluster (default: 2)",
+    )
     return parser.parse_args()
 
 
@@ -93,6 +110,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--header-size must be >= 0")
     if args.window < 0:
         raise ValueError("--window must be >= 0")
+    if args.min_cluster_records < 1:
+        raise ValueError("--min-cluster-records must be >= 1")
 
 
 def dominant_payload_xor(left: bytes, right: bytes, payload_start: int) -> tuple[int | None, int, int]:
@@ -202,6 +221,77 @@ def decode_tg_record(data: bytes, offset: int, slot: int) -> TgRecord:
     )
 
 
+def is_tg_like_record(data: bytes, offset: int) -> bool:
+    if offset + TG_RECORD_SIZE > len(data):
+        return False
+    record = data[offset : offset + TG_RECORD_SIZE]
+    if len(set(record)) == 1:
+        return False
+    name = record[TG_NAME_START:TG_NAME_END_EXCLUSIVE]
+    if not name or len(set(name)) == 1:
+        return False
+    numeric = record[TG_NUMBER_START : TG_NUMBER_START + TG_NUMBER_SIZE]
+    if len(numeric) != TG_NUMBER_SIZE:
+        return False
+    decoded = int.from_bytes(numeric, "little") ^ TG_NUMBER_XOR
+    return 1 <= decoded <= 65535
+
+
+def scan_tg_clusters(
+    data: bytes,
+    ranges: list[ByteRange],
+    min_records: int,
+) -> list[TgCluster]:
+    clusters: list[TgCluster] = []
+    max_start = len(data) - TG_RECORD_SIZE
+    if max_start < 0:
+        return clusters
+
+    current_start: int | None = None
+    current_count = 0
+    offset = 0
+    while offset <= max_start:
+        if is_tg_like_record(data, offset):
+            if current_start is None:
+                current_start = offset
+                current_count = 1
+            else:
+                current_count += 1
+        else:
+            if current_start is not None and current_count >= min_records:
+                first = decode_tg_record(data, current_start, 0)
+                last_offset = current_start + (current_count - 1) * TG_RECORD_SIZE
+                clusters.append(
+                    TgCluster(
+                        start=current_start,
+                        count=current_count,
+                        first_record=first,
+                        last_offset=last_offset,
+                        changed=range_changed(
+                            current_start,
+                            current_count * TG_RECORD_SIZE,
+                            ranges,
+                        ),
+                    )
+                )
+            current_start = None
+            current_count = 0
+        offset += TG_RECORD_SIZE
+    if current_start is not None and current_count >= min_records:
+        first = decode_tg_record(data, current_start, 0)
+        last_offset = current_start + (current_count - 1) * TG_RECORD_SIZE
+        clusters.append(
+            TgCluster(
+                start=current_start,
+                count=current_count,
+                first_record=first,
+                last_offset=last_offset,
+                changed=range_changed(current_start, current_count * TG_RECORD_SIZE, ranges),
+            )
+        )
+    return sorted(clusters, key=lambda cluster: (cluster.start, cluster.count))
+
+
 def scan_tg_region(data: bytes, start: int, ranges: list[ByteRange]) -> TgScan:
     records: list[TgRecord] = []
     for slot in range(TG_RECORD_COUNT):
@@ -250,6 +340,13 @@ def changed_record_label(slot: int | None, start: int) -> str:
     return f"slot {slot} @ 0x{start + slot * TG_RECORD_SIZE:08x}"
 
 
+def cluster_overlaps_area(cluster: TgCluster, center: int, window: int) -> str:
+    cluster_end = cluster.last_offset + TG_RECORD_SIZE - 1
+    area_start = max(0, center - window)
+    area_end = center + window - 1
+    return "yes" if cluster.start <= area_end and area_start <= cluster_end else "no"
+
+
 def nearby_ranges(
     ranges: list[ByteRange],
     data_before: bytes,
@@ -282,6 +379,7 @@ def render_experiment(
     experiment: bytes,
     header_size: int,
     window: int,
+    min_cluster_records: int,
 ) -> str:
     mask, mask_count, payload_compared = dominant_payload_xor(baseline, experiment, header_size)
     normalized = normalized_right(baseline, experiment, header_size, mask)
@@ -297,6 +395,7 @@ def render_experiment(
         scan_tg_region(normalized, BLANK_TG_START, ranges),
         scan_tg_region(normalized, TRAVEL_TG_START, ranges),
     ]
+    tg_clusters = scan_tg_clusters(normalized, ranges, min_cluster_records)
     known_areas = [
         ("channel area around 0x5E80", CHANNEL_START, f"channel start; stride 0x{CHANNEL_STRIDE:x}"),
         (
@@ -355,6 +454,46 @@ def render_experiment(
         )
     )
 
+    lines.extend(["", "### Whole-File TG-Like Cluster Scan", ""])
+    lines.extend(
+        [
+            f"- Minimum adjacent matching records: {min_cluster_records}",
+            "- Scan alignment: 32-byte-aligned offsets from file start",
+            "",
+        ]
+    )
+    lines.extend(
+        markdown_table(
+            [
+                "Start",
+                "Records",
+                "First Slot Offset",
+                "First Name Candidate",
+                "First Numeric XOR5151",
+                "Last Slot Offset",
+                "Overlaps 0x12A00 Area",
+                "Overlaps 0x14940 Area",
+                "Overlaps 0x14F80 Area",
+                "Cluster Bytes Changed",
+            ],
+            [
+                [
+                    f"0x{cluster.start:08x}",
+                    cluster.count,
+                    f"0x{cluster.first_record.offset:08x}",
+                    cluster.first_record.name_ascii,
+                    cluster.first_record.numeric_decoded,
+                    f"0x{cluster.last_offset:08x}",
+                    cluster_overlaps_area(cluster, OBSERVED_TG_START, window),
+                    cluster_overlaps_area(cluster, BLANK_TG_START, window),
+                    cluster_overlaps_area(cluster, TRAVEL_TG_START, window),
+                    "yes" if cluster.changed else "no",
+                ]
+                for cluster in tg_clusters
+            ],
+        )
+    )
+
     lines.extend(["", "### Nearby Changed Ranges", ""])
     for title, center, note in known_areas:
         lines.extend(
@@ -384,6 +523,7 @@ def render_experiment(
                 f"{'yes' if tg_scans[0].changed else 'no'}; "
                 f"candidate TG region 0x14F80 changed: {'yes' if tg_scans[1].changed else 'no'}."
             ),
+            f"- Whole-file TG-like clusters found: {len(tg_clusters)}.",
             "- No layout algorithm is inferred from this experiment by this tool.",
             "",
         ]
@@ -409,6 +549,7 @@ def render_report(args: argparse.Namespace, baseline: bytes, experiments: list[t
                 experiment,
                 args.header_size,
                 args.window,
+                args.min_cluster_records,
             )
         )
     lines.extend(
