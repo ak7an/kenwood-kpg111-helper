@@ -5,7 +5,7 @@ from kpg111.imports import load_import_csv
 from kpg111.planner import plan_merge
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 def import_csv() -> Path:

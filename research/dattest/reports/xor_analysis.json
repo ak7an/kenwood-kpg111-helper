@@ -1,7 +1,7 @@
 {
   "schema": "kpg111-helper.xor-analysis.v1",
   "baseline": {
-    "path": "research/dattest/Dattest/AK7AN_Travel.dat",
+    "path": "data/normalized/dattest/Dattest/AK7AN_Travel.dat",
     "size": 168257,
     "sha256": "aa20a84b5cb76e5fd58a691eb26fdc4140e7d75fb3bd6b28fc156f3ec4144cce"
   },
@@ -64,7 +64,7 @@
   "pairs": [
     {
       "modified": {
-        "path": "research/dattest/Dattest/Program_1TG.dat",
+        "path": "data/normalized/dattest/Dattest/Program_1TG.dat",
         "size": 168257,
         "sha256": "c45cf2d1d791cc516e1bb737521409df239225f062bb998ffd1bbda5d3f579b1"
       },
@@ -326,7 +326,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest/Dattest/Program_1ID.dat",
+        "path": "data/normalized/dattest/Dattest/Program_1ID.dat",
         "size": 168257,
         "sha256": "28c0ab2d0f2fc2deae4ddbead01b82f8dcd4f41e1b2014e2dcb924625ed3f195"
       },
@@ -692,7 +692,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest/Dattest/Program_Rename.dat",
+        "path": "data/normalized/dattest/Dattest/Program_Rename.dat",
         "size": 168257,
         "sha256": "9b2e64e22dd019feeb56ac9a872c8d948652de73dbe20bc26b28975909e94562"
       },
@@ -942,7 +942,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest/Dattest/Program_Delete.dat",
+        "path": "data/normalized/dattest/Dattest/Program_Delete.dat",
         "size": 168257,
         "sha256": "5069bdf3e5a1a7b5f6347992ff7fe291e464afa5b287b96d513ff019de325a22"
       },

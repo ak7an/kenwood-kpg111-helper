@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from kpg111.metadata import dominant_payload_xor, normalize_payload
 
 
-DEFAULT_INPUT_GLOB = "~/experiments/Line2_RX_1465*.dat"
-DEFAULT_BASELINE = "~/AK7AN_Channel_Baseline.dat"
+DEFAULT_INPUT_GLOB = "data/experiments/channel_dats/Line2_RX_1465*.dat"
+DEFAULT_BASELINE = "data/experiments/channel_dats/Line2_RX_146500.dat"
 DEFAULT_REPORT = Path("/tmp/kpg111_frequency_full_diff_ladder.txt")
 DEFAULT_CSV = Path("/tmp/kpg111_frequency_full_diff_ladder.csv")
 CHANNEL_TABLE_START = 0x5E80

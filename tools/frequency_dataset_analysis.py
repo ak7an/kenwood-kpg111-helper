@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from kpg111.metadata import dominant_payload_xor, normalize_payload
 
 
-DEFAULT_INPUT_GLOB = "experiments/**/*.dat"
+DEFAULT_INPUT_GLOB = "data/experiments/channel_dats/*.dat"
 DEFAULT_CSV = "frequency_dataset.csv"
 DEFAULT_REPORT = "frequency_dataset_report.md"
 CHANNEL_TABLE_START = 0x5E80

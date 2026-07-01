@@ -5,10 +5,10 @@ from kpg111.allocation import analyze_allocation
 
 
 ROOTS = [
-    Path("research/dattest"),
-    Path("research/dattest2"),
-    Path("research/dattest3"),
-    Path("research/dattest4"),
+    Path("data/normalized/dattest"),
+    Path("data/normalized/dattest2"),
+    Path("data/normalized/dattest3"),
+    Path("data/normalized/dattest4"),
 ]
 
 

@@ -9,7 +9,7 @@ import unittest
 from tools.dat_export_channels import FIELDNAMES
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 TOOL = Path("tools/dat_export_channels.py")
 HEX_RE = re.compile(r"^0x[0-9a-fA-F]{8}$")
 

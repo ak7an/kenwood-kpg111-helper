@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from kpg111.metadata import dominant_payload_xor, normalize_payload
 
 
-DEFAULT_INPUT_GLOB = "~/experiments/Line2_RX_*.dat"
-DEFAULT_BASELINE = "~/AK7AN_Channel_Baseline.dat"
+DEFAULT_INPUT_GLOB = "data/experiments/channel_dats/Line2_RX_*.dat"
+DEFAULT_BASELINE = "data/experiments/channel_dats/Line2_RX_146000.dat"
 CHANNEL_TABLE_START = 0x5E80
 CHANNEL_STRIDE = 0x40
 CHANNEL_NUMBER = 2

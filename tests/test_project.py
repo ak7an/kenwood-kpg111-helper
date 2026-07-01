@@ -4,7 +4,7 @@ import unittest
 from kpg111.project import KPG111Project
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 def import_csv() -> Path:

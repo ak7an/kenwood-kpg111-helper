@@ -16,7 +16,7 @@ from kpg111.decoder import (
 from tools.import_dvref_talkgroups import load_dvref_rows, normalize_name
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 TOOL = Path("tools/import_dvref_talkgroups.py")
 DECODE_KEY = 0x5B
 

@@ -1,7 +1,7 @@
 {
   "schema": "kpg111-helper.xor-analysis.v1",
   "baseline": {
-    "path": "research/dattest4/Dattest4/Program3.dat",
+    "path": "data/normalized/dattest4/Dattest4/Program3.dat",
     "size": 168257,
     "sha256": "370e94b05d195f8eb1e3afc9c1d86159f560f217eb5aae3c6193fc8a4501528f"
   },
@@ -64,7 +64,7 @@
   "pairs": [
     {
       "modified": {
-        "path": "research/dattest4/Dattest4/Program5.dat",
+        "path": "data/normalized/dattest4/Dattest4/Program5.dat",
         "size": 168257,
         "sha256": "dd6653642b6be56f6f7364d66c24c0d1357f7dd0e6098bd0f1c49e5fb090c15c"
       },
@@ -482,7 +482,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest4/Dattest4/Program6.dat",
+        "path": "data/normalized/dattest4/Dattest4/Program6.dat",
         "size": 168257,
         "sha256": "dcc2f23c2923b75a8870bc692372c3d4016379f7efe690c5a689c659ef33f451"
       },

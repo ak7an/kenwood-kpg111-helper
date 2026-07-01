@@ -4,7 +4,7 @@ import unittest
 from kpg111.decoder import decode_program_tables
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 class DecoderTests(unittest.TestCase):

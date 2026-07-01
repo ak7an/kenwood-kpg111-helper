@@ -8,7 +8,7 @@ import unittest
 from kpg111.decoder import NAME_LENGTH, NAME_START, NUMERIC_LENGTH, NUMERIC_START
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 EXPORT_TOOL = Path("tools/dat_export_records.py")
 IMPORT_TOOL = Path("tools/dat_import_records.py")
 

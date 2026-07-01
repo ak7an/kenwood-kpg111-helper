@@ -13,7 +13,7 @@ from kpg111.project import KPG111Project
 
 
 IMPORT_PATH = Path("/tmp/kpg111_import_test.csv")
-PROGRAM_PATH = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+PROGRAM_PATH = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 def ensure_import_csv() -> None:

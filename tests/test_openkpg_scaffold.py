@@ -19,7 +19,7 @@ from openkpg.ui.views.welcome import WELCOME_ACTIONS
 from openkpg.ui.windows.main_window import MainWindow
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 class OpenKPGScaffoldTests(unittest.TestCase):

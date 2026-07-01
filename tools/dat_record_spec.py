@@ -24,10 +24,10 @@ def parse_args() -> argparse.Namespace:
         nargs="*",
         type=Path,
         default=[
-            Path("research/dattest"),
-            Path("research/dattest2"),
-            Path("research/dattest3"),
-            Path("research/dattest4"),
+            Path("data/normalized/dattest"),
+            Path("data/normalized/dattest2"),
+            Path("data/normalized/dattest3"),
+            Path("data/normalized/dattest4"),
         ],
         help="Research roots to scan.",
     )

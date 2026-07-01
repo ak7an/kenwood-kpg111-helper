@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,7 @@ from kpg111.decoder import NAME_LENGTH, NAME_START, NUMERIC_LENGTH, NUMERIC_STAR
 from kpg111.writer import WriterError, edit_record, rename_record
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 TOOL = Path("tools/dat_edit_record.py")
 DECODE_KEY = 0x5B
 

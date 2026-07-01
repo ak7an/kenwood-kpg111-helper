@@ -8,7 +8,7 @@ from kpg111.project import KPG111Project
 from tools.dat_roundtrip_check import first_difference
 
 
-FIXTURE = Path("research/dattest/Dattest/AK7AN_Travel.dat")
+FIXTURE = Path("data/normalized/dattest/Dattest/AK7AN_Travel.dat")
 TOOL = Path("tools/dat_roundtrip_check.py")
 
 

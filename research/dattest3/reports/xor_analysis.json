@@ -1,7 +1,7 @@
 {
   "schema": "kpg111-helper.xor-analysis.v1",
   "baseline": {
-    "path": "research/dattest3/Dattest3/Program.dat",
+    "path": "data/normalized/dattest3/Dattest3/Program.dat",
     "size": 168257,
     "sha256": "c73e0cb6bcbff5765e90ceb4fcf856cb7e8088587a8deb4412b5b57868ee0cf5"
   },
@@ -64,7 +64,7 @@
   "pairs": [
     {
       "modified": {
-        "path": "research/dattest3/Dattest3/Program1.dat",
+        "path": "data/normalized/dattest3/Dattest3/Program1.dat",
         "size": 168257,
         "sha256": "ae923c094081985668860542ee6dc82157bd703fa0c7dca8150bce87bee57354"
       },
@@ -398,7 +398,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest3/Dattest3/Program2.dat",
+        "path": "data/normalized/dattest3/Dattest3/Program2.dat",
         "size": 168257,
         "sha256": "885d599058a75853acc6590eb1e4e36ffb4062bcd96bcc364ecd3588198c8731"
       },
@@ -772,7 +772,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest3/Dattest3/Program3.dat",
+        "path": "data/normalized/dattest3/Dattest3/Program3.dat",
         "size": 168257,
         "sha256": "370e94b05d195f8eb1e3afc9c1d86159f560f217eb5aae3c6193fc8a4501528f"
       },
@@ -1230,7 +1230,7 @@
     },
     {
       "modified": {
-        "path": "research/dattest3/Dattest3/Program4.dat",
+        "path": "data/normalized/dattest3/Dattest3/Program4.dat",
         "size": 168257,
         "sha256": "c91e938bf7aead1c8c7d21f5c49a8845031c3a3ba490abfaffafd565f46e81f3"
       },
