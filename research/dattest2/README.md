@@ -10,7 +10,7 @@ All files are `168257` bytes.
 
 Important filename note: the task text refers to `Program_TG_65535.dat` and `Program_ID_65535.dat`, but the archive contains `Program_TG_65516.dat` and `Program_ID_65519.dat`. The bytes in both max-value experiments decode to `65519`, not `65535`.
 
-Generated supporting reports are under `research/dattest2/reports/`.
+Generated supporting reports are under `data/normalized/dattest2/reports/`.
 
 ## Direct Byte Comparison Against `Program_Nochange1.dat`
 
