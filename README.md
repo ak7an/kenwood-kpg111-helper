@@ -1,187 +1,573 @@
-# Kenwood KPG111 Helper
+# OpenKPG
 
-Safe analysis tools for researching Kenwood KPG111 `Program.dat` files.
+OpenKPG is an open-source codeplug builder and maintenance toolkit for Kenwood NX-series radios.
 
-This project is intentionally read-only for KPG111 fields inside binary `.dat`
-files. It does not patch, merge, or generate edited KPG111 data files yet. The
-first goal is to collect evidence about the file format before any field-level
-writer is implemented.
+Its purpose is to eliminate repetitive manual data entry by automating the creation and maintenance of KPG111D-compatible codeplugs while preserving complete compatibility with the official Kenwood programming software.
 
-## Current Capabilities
+OpenKPG builds and maintains codeplugs.
 
-- Parse and decode known DAT table structure for observed Talk Group and
-  Individual ID records.
-- Generate allocation reports from existing controlled experiments.
-- Generate byte-level record specifications for known TG/ID records.
-- Run record size audits for the current 32-byte TG/ID record model.
-- Perform byte-for-byte no-op round-trip validation.
-- Run automated tests for decoders, imports, planning, project workflows, record
-  specs, allocation analysis, and round-trip safety.
+Kenwood KPG111D remains the official application used to write those codeplugs to supported radios.
 
-## Not Yet Supported
+---
 
-- No field-level DAT editing yet.
-- No complete channel, zone, or contact writer yet.
-- No full replacement for KPG-111D yet.
-- No guarantee that edited files are radio-safe yet.
+## Mission
 
-## OpenKPG
+The goal of OpenKPG is to simplify the creation and maintenance of Kenwood NX-series codeplugs.
 
-OpenKPG is the future GUI/CPS application for this project. Its current state is
-a read-only application scaffold with a startup screen, project workspace model,
-and DAT opening workflow. The GUI talks to OpenKPG core models, the core talks
-to the backend, and the backend continues to use the existing `kpg111` library.
+Rather than replacing the Kenwood Customer Programming Software (CPS), OpenKPG complements it by providing modern tools for constructing, importing, validating, and maintaining codeplugs before they are opened in KPG111D.
 
-DAT editing, save/write support, and radio programming are not implemented yet.
+The resulting DAT files are intended to:
 
-## Key Documents
+- Open correctly in KPG111D.
+- Remain editable in KPG111D.
+- Program successfully into supported radios using the official Kenwood software.
 
-- [Record specification](docs/RECORD_SPECIFICATION.md)
-- [Record size audit](docs/RECORD_SIZE_AUDIT.md)
-- [Development roadmap](docs/DEVELOPMENT_ROADMAP.md)
-- [DAT diff experiments](docs/DAT_DIFF_EXPERIMENTS.md)
-- [Evidence matrix](docs/EVIDENCE_MATRIX.md)
-- [Writer design](docs/WRITER_DESIGN.md)
-- [Reverse engineering plan](docs/REVERSE_ENGINEERING_PLAN.md)
+---
 
-## Tools
+## What OpenKPG Is
 
-- `tools/dat_inspect.py` reports size, hashes, hex summaries, printable
-  strings, likely table-like regions, and repeated byte structures.
-- `tools/dat_diff.py` compares two `.dat` files byte-by-byte and produces
-  evidence-grade contiguous changed-range reports for controlled experiments.
-- `tools/dat_search.py` searches for ASCII strings, UTF-16LE strings, decimal
-  text, and common integer encodings.
-- `tools/dat_compare_session.py` compares a baseline and modified `.dat` file
-  and writes read-only evidence to `session.json`.
-- `tools/session_report.py` reads one or more session files and produces a
-  markdown report of recurring statistical observations.
-- `tools/dat_tables.py` analyzes one `.dat` file for possible fixed-width table
-  regions, unused slots, entropy, printable density, and repeated padding.
-- `tools/offset_spacing.py` analyzes one or more session files for spacing,
-  divisors, alignment histograms, and record-size candidates.
-- `tools/csv_validate.py` validates Talk Group and Individual ID CSV files with
-  the required columns `type,name,id`.
-- `tools/dat_roundtrip_check.py` parses a `.dat` file with the existing project
-  code, writes an unchanged byte-preserving copy, and verifies that the copy is
-  byte-for-byte identical to the input.
+OpenKPG is designed to automate repetitive codeplug maintenance including:
 
-## CSV Format
+- Building complete KPG111D-compatible DAT files.
+- Importing RepeaterBook CSV files.
+- Importing DVREF Talk Group lists.
+- Importing Individual ID lists.
+- Building channels.
+- Building zones.
+- Managing Talk Groups.
+- Managing Individual IDs.
+- Merge operations.
+- Replace operations.
+- Sorting.
+- Name normalization.
+- Validation.
+- Report generation.
 
-Input CSV files must include this header:
+Every feature should reduce manual editing inside KPG111D.
 
-```csv
-type,name,id
-TG,Dispatch,1001
-INDIVIDUAL,Radio 42,42042
-```
+---
 
-Rules:
+## What OpenKPG Is Not
 
-- `type` must be exactly `TG` or `INDIVIDUAL`.
-- `name` must not be blank.
-- `id` must be a positive decimal integer.
+OpenKPG is NOT:
 
-## Usage
+- a replacement for Kenwood KPG111D
+- a clone of the Kenwood CPS
+- a radio programming application
 
-Inspect one KPG111 data file:
+Programming radios remains the responsibility of the official Kenwood software.
 
-```bash
-python3 tools/dat_inspect.py Program.dat
-```
+---
 
-Look for possible fixed-width table regions before running experiments:
+## Supported Platforms
 
-```bash
-python3 tools/dat_tables.py Program.dat
-python3 tools/dat_tables.py Program.dat --json tables.json
-```
+The OpenKPG engine is intended to support:
 
-Compare two KPG111 data files:
+- Windows
+- Debian Linux
+- Ubuntu
+- Raspberry Pi OS
 
-```bash
-python3 tools/dat_diff.py before/Program.dat after/Program.dat
-```
+A single code base should support every platform.
 
-Search for a known name or ID:
+The graphical user interface shall use the same underlying OpenKPG engine regardless of operating system.
 
-```bash
-python3 tools/dat_search.py Program.dat 1200
-python3 tools/dat_search.py Program.dat Dispatch
-```
+---
 
-Create a comparison session:
+## Project Philosophy
 
-```bash
-python3 tools/dat_compare_session.py baseline.dat modified.dat
-```
+Never guess.
 
-Generate a markdown report from one or more sessions:
+Protect the user's existing codeplug.
 
-```bash
-python3 tools/session_report.py session.json other/session.json > report.md
-```
+Preserve compatibility with KPG111D.
 
-Analyze spacing after several comparison sessions:
+Implement write support only after controlled experiments prove the file format.
 
-```bash
-python3 tools/offset_spacing.py research/*/session.json > spacing.md
-```
+Diagnostics precede implementation.
 
-Validate one or more CSV files:
+Safety, compatibility, and correctness are more important than feature count.
 
-```bash
-python3 tools/csv_validate.py talkgroups.csv individual_ids.csv
-```
+---
 
-Optional stricter duplicate checks:
+## Reverse Engineering Policy
 
-```bash
-python3 tools/csv_validate.py --unique-ids talkgroups.csv individual_ids.csv
-python3 tools/csv_validate.py --unique-names talkgroups.csv individual_ids.csv
-```
+Reverse engineering is performed only as necessary to safely implement OpenKPG codeplug builder features.
 
-Run a byte-for-byte round-trip safety check:
+Reverse engineering supports implementation.
 
-```bash
-python3 tools/dat_roundtrip_check.py Program.dat --decode-key 0x5b
-python3 tools/dat_roundtrip_check.py Program.dat --decode-key 0x5b --output roundtrip.dat
-```
+It is not the deliverable.
 
-Round-trip validation is the safety foundation before any future field-level
-editing. An unchanged file must parse, serialize through the project, and match
-the original bytes exactly before edited output can be considered.
+The deliverable is a practical, reliable, cross-platform codeplug builder.
 
-## Safety Rules
+---
 
-- Never write edited DAT files without round-trip tests.
-- Preserve unknown bytes.
-- Prefer additive decoding over destructive rewriting.
-- Every encoder must have tests.
-- Every fixture must pass byte-identical round-trip unless intentionally edited.
+## Development Priorities
 
-## Recommended Developer Workflow
+1. Stable DAT reader.
+2. Stable DAT writer.
+3. Talk Group Manager.
+4. Individual ID Manager.
+5. RepeaterBook CSV Import.
+6. Channel Builder.
+7. Zone Builder.
+8. Cross-platform GUI.
+9. Additional reverse engineering only when required to implement the above features.
 
-1. Start from known-good DAT fixtures.
-2. Make one KPG-111D change at a time.
-3. Compare before/after bytes.
-4. Document offsets and meanings.
-5. Add tests before expanding edits.
+---
 
-## Research Workflow
+## Decision Filter
 
-1. Export a baseline `Program.dat`.
-2. Change exactly one thing in KPG111.
-3. Export again as a new `Program.dat`.
-4. Compare the baseline and modified files with `dat_diff.py` or
-   `dat_compare_session.py`.
-5. Record observations in `docs/FORMAT_RESEARCH.md`.
-6. Repeat with one new controlled change.
-7. After several sessions, use `session_report.py` and `offset_spacing.py` to
-   look for recurring statistical patterns.
+Before beginning any development work ask:
 
-See `docs/REVERSE_ENGINEERING_PLAN.md` for the complete safe workflow.
+Does this directly improve OpenKPG's ability to build or maintain KPG111D-compatible codeplugs?
 
-Do not implement binary writing until the relevant record layout, checksums,
-padding, encoding, and version-specific behavior are proven from repeatable
-test files.
+If YES:
+
+Proceed.
+
+If NO:
+
+Do not implement it unless it directly supports one of the project's primary builder features.
+
+---
+
+## Current Status
+
+OpenKPG is under active development.
+
+The project has already proven numerous portions of the KPG111D DAT format through controlled experimentation.
+
+Current development focuses on implementing practical codeplug-builder functionality using only verified knowledge of the file format.
+
+
+Project Rules
+
+Every feature implemented in OpenKPG shall satisfy the following principles:
+
+1. Never guess.
+2. Protect the user's existing codeplug.
+3. Preserve compatibility with KPG111D.
+4. Implement only behavior supported by controlled experiments.
+5. Diagnostics precede implementation.
+6. Builder functionality always takes priority over curiosity-driven reverse engineering.
+
+OpenKPG exists to solve real programming problems.
+
+---
+
+Current Reverse Engineering Status
+
+Much of the KPG111D DAT format has already been reverse engineered through controlled experimentation.
+
+Confirmed discoveries include, but are not limited to:
+
+- Talk Group record layout
+- Individual ID record layout
+- Multiple channel record fields
+- Numerous allocation behaviors
+- Header normalization behavior
+- XOR normalization
+- Controlled write validation
+- Safe merge behavior
+- Reserved record identification
+
+Additional reverse engineering will be performed only when required to implement a builder feature.
+
+---
+
+Development Workflow
+
+Every new feature follows the same workflow:
+
+1. Identify a builder requirement.
+2. Determine whether existing knowledge is sufficient.
+3. Perform controlled experiments if additional information is required.
+4. Implement the feature.
+5. Validate against KPG111D.
+6. Validate with automated tests.
+7. Validate with actual radios whenever practical.
+
+---
+
+Contributing
+
+Contributions are welcome.
+
+Before implementing write support for undocumented portions of the DAT format:
+
+- Create controlled experiments.
+- Document findings.
+- Validate conclusions.
+- Avoid speculation.
+
+Evidence always takes precedence over assumptions.
+
+---
+
+License
+
+OpenKPG is released under the GNU General Public License Version 3 (GPLv3).
+
+See the LICENSE file for details.
+
+
+Roadmap
+
+Near-Term Goals
+
+- Complete stable DAT reader.
+- Complete stable DAT writer.
+- Finish Talk Group Manager.
+- Finish Individual ID Manager.
+- Finish RepeaterBook CSV importer.
+- Finish Channel Builder.
+- Finish Zone Builder.
+- Complete validation framework.
+
+Mid-Term Goals
+
+- Cross-platform graphical user interface.
+- Codeplug templates.
+- Batch codeplug generation.
+- Import/export profiles.
+- Comprehensive reporting.
+- Additional supported Kenwood models where practical.
+
+Long-Term Goals
+
+Provide an open-source toolkit capable of building and maintaining Kenwood codeplugs using a modern workflow while remaining compatible with the official Kenwood programming software.
+
+---
+
+Repository Organization
+
+The repository is organized as follows:
+
+    data/
+        baseline/
+        experiments/
+        imports/
+        normalized/
+
+    docs/
+
+    kpg111/
+
+    tests/
+
+    tools/
+
+    README.md
+
+    PROJECT_STATE.md
+
+The data directory contains controlled experiments and reference datasets.
+
+The tools directory contains diagnostics and builder utilities.
+
+The tests directory contains automated validation.
+
+---
+
+Project Scope
+
+OpenKPG focuses exclusively on building and maintaining compatible codeplugs.
+
+The project intentionally avoids replacing the official Kenwood CPS.
+
+Programming radios, firmware management, and radio servicing remain outside the scope of this project.
+
+---
+
+Acknowledgements
+
+This project exists because of many hours of controlled experimentation, validation, and real-world testing using Kenwood NX-series radios.
+
+Every verified discovery improves the reliability of the OpenKPG codeplug builder.
+
+
+Frequently Asked Questions
+
+Q: Does OpenKPG replace KPG111D?
+
+A: No.
+
+OpenKPG complements KPG111D.
+
+OpenKPG builds and maintains compatible codeplugs.
+
+KPG111D remains the official application used to write those codeplugs into supported radios.
+
+---
+
+Q: Will OpenKPG communicate directly with radios?
+
+A: Not as a project objective.
+
+The project's primary goal is reliable generation and maintenance of KPG111D-compatible DAT files.
+
+---
+
+Q: Why is reverse engineering included?
+
+A: Because portions of the DAT format are undocumented.
+
+Reverse engineering is performed only when necessary to safely implement a builder feature.
+
+Every documented discovery is verified through controlled experimentation.
+
+---
+
+Q: Will additional Kenwood CPS formats be supported?
+
+A: Possibly.
+
+The long-term architecture is intended to separate the builder engine from individual CPS file formats.
+
+Support for additional Kenwood formats will be considered after OpenKPG provides a mature implementation for KPG111D.
+
+---
+
+Design Principles
+
+The OpenKPG engine should be modular.
+
+Individual components should remain independent whenever practical.
+
+Examples include:
+
+    DAT Reader
+
+    DAT Writer
+
+    Builder Engine
+
+    Validation Engine
+
+    RepeaterBook Import
+
+    Talk Group Import
+
+    Individual ID Import
+
+    Channel Builder
+
+    Zone Builder
+
+    Report Generator
+
+    Cross-platform GUI
+
+Keeping these components independent improves testing, maintainability, and future expansion.
+
+---
+
+Project Success Criteria
+
+OpenKPG will be considered successful when a user can:
+
+    Import a RepeaterBook CSV.
+
+    Import a Talk Group list.
+
+    Import an Individual ID list.
+
+    Build a complete codeplug.
+
+    Open the generated DAT in KPG111D.
+
+    Make optional manual edits.
+
+    Successfully program a supported Kenwood radio.
+
+without repetitive manual data entry.
+
+---
+
+Thank you for supporting OpenKPG.
+
+73,
+
+AK7AN
+
+
+Future Builder Modules
+
+The OpenKPG architecture is intended to support additional builder modules over time.
+
+Potential modules include:
+
+    Contact Manager
+
+    Scan List Manager
+
+    FleetSync Manager
+
+    MDC-1200 Manager
+
+    Signaling Manager
+
+    Conventional Personality Builder
+
+    NXDN Personality Builder
+
+    Fleet Mapping Utilities
+
+    Batch Codeplug Builder
+
+    Template Manager
+
+These modules will be developed only after the core builder engine is considered stable.
+
+---
+
+Engineering Philosophy
+
+OpenKPG favors correctness over speed.
+
+Every builder feature should be:
+
+    Predictable
+
+    Reproducible
+
+    Testable
+
+    Backward compatible whenever practical
+
+Builder code should be understandable by future contributors without requiring knowledge of undocumented behavior.
+
+Whenever possible:
+
+    Discover
+
+    Verify
+
+    Implement
+
+    Test
+
+    Document
+
+in that order.
+
+---
+
+Testing Requirements
+
+Builder features should include:
+
+    Unit tests
+
+    Integration tests
+
+    Controlled DAT comparisons
+
+    Validation against KPG111D
+
+    Validation on physical radios whenever practical
+
+The objective is confidence rather than assumptions.
+
+---
+
+Repository Standards
+
+Source code should remain portable.
+
+Avoid operating-system-specific implementations whenever practical.
+
+Builder logic should remain independent of the graphical interface.
+
+The GUI is a client of the OpenKPG engine.
+
+The command-line tools are also clients of the OpenKPG engine.
+
+There should be a single implementation of the builder logic.
+
+---
+
+Versioning
+
+OpenKPG follows semantic versioning whenever practical.
+
+Major versions represent significant builder capability.
+
+Minor versions add compatible functionality.
+
+Patch releases correct defects without changing intended behavior.
+
+---
+
+Closing Statement
+
+OpenKPG exists to make maintaining Kenwood NX-series codeplugs easier, safer, faster, and more reliable while remaining fully compatible with the official Kenwood programming software.
+
+The project values verified engineering over speculation and practical builder functionality over unnecessary complexity.
+
+
+Appendix A - Guiding Principles
+
+OpenKPG shall always favor:
+
+    Verified behavior over assumed behavior.
+
+    Builder functionality over unnecessary complexity.
+
+    Compatibility over convenience.
+
+    Safety over speed.
+
+Every modification to a DAT file should be explainable, repeatable, and supported by documented evidence.
+
+---
+
+Appendix B - Supported Builder Inputs
+
+Planned supported input formats include:
+
+    RepeaterBook CSV
+
+    DVREF Talk Group CSV
+
+    Individual ID CSV
+
+    OpenKPG project files
+
+    Existing KPG111D DAT files
+
+Additional import formats may be added as practical without compromising the primary project goals.
+
+---
+
+Appendix C - Supported Builder Outputs
+
+Primary output:
+
+    KPG111D-compatible DAT files
+
+Additional reports may include:
+
+    Validation reports
+
+    Duplicate reports
+
+    Import summaries
+
+    Merge summaries
+
+    Builder statistics
+
+---
+
+Final Statement
+
+OpenKPG is an engineering project with a practical objective.
+
+The measure of success is not how much of the KPG111D file format has been reverse engineered.
+
+The measure of success is whether OpenKPG can reliably build and maintain KPG111D-compatible codeplugs that open correctly in KPG111D and can be successfully programmed into supported Kenwood NX-series radios.
+
+The project will remain focused on delivering practical builder capabilities while preserving compatibility, reliability, and user confidence.
+
