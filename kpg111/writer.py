@@ -188,6 +188,22 @@ def _table_max_records(table: str, data_size: int) -> int:
     return max(0, (data_size - table_start) // RECORD_SIZE)
 
 
+def validate_name(name: str) -> None:
+    _validate_name(name)
+
+
+def validate_numeric_id(table: str, numeric_id: int) -> None:
+    _validate_numeric_id(table, numeric_id)
+
+
+def encode_name(name: str, decode_key: int) -> bytes:
+    return _encode_name(name, decode_key)
+
+
+def encode_numeric_id(numeric_id: int, decode_key: int) -> bytes:
+    return _encode_numeric_id(numeric_id, decode_key)
+
+
 def _validate_slot(slot: int) -> None:
     if slot < 0:
         raise WriterError("slot must be non-negative")

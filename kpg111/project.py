@@ -1,4 +1,4 @@
-"""Read-only project facade for KPG111 Program.dat table workflows."""
+"""Project facades for KPG111 Program.dat table workflows."""
 
 from __future__ import annotations
 
@@ -10,10 +10,70 @@ from .imports import ImportRecord, load_import_csv, load_import_csvs
 from .model import DecodedRecord, ProgramTables
 from .planner import MergePlan, plan_merge
 from .tables import trim_after_table
+from .writer import ByteRange, edit_record
+
+
+class Codeplug:
+    """Byte-preserving DAT document used by OpenKPG builder code."""
+
+    def __init__(
+        self,
+        data: bytes,
+        *,
+        source_path: Path | None = None,
+        decode_key: int = 0x5B,
+        changed_ranges: tuple[ByteRange, ...] = (),
+    ) -> None:
+        self._data = bytes(data)
+        self.source_path = source_path
+        self.decode_key = decode_key
+        self.changed_ranges = changed_ranges
+
+    @classmethod
+    def load(cls, path: Path | str, decode_key: int = 0x5B) -> "Codeplug":
+        source = Path(path)
+        return cls(source.read_bytes(), source_path=source, decode_key=decode_key)
+
+    def to_bytes(self) -> bytes:
+        """Return the current DAT bytes without rebuilding unknown regions."""
+
+        return self._data
+
+    def save(self, path: Path | str) -> Path:
+        """Write the current DAT bytes exactly as held by this codeplug."""
+
+        output = Path(path)
+        output.write_bytes(self.to_bytes())
+        return output
+
+    def edit_record(
+        self,
+        table: str,
+        slot: int,
+        *,
+        name: str | None = None,
+        numeric_id: int | None = None,
+    ) -> "Codeplug":
+        """Return a new codeplug with one verified TG/ID record edit applied."""
+
+        result = edit_record(
+            self._data,
+            self.decode_key,
+            table,
+            slot,
+            name=name,
+            numeric_id=numeric_id,
+        )
+        return Codeplug(
+            result.data,
+            source_path=self.source_path,
+            decode_key=self.decode_key,
+            changed_ranges=tuple(result.changed_ranges),
+        )
 
 
 class KPG111Project:
-    """Coordinate decoding, imports, and merge planning without writing Program.dat."""
+    """Coordinate decoding, imports, and merge planning for existing tools."""
 
     def __init__(self) -> None:
         self.program_path: Path | None = None

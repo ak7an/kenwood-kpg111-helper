@@ -9,14 +9,18 @@ from .frequency import (
     reconstruct_frequency,
 )
 from .model import DecodedRecord, ProgramTables
-from .project import KPG111Project
+from .project import Codeplug, KPG111Project
+from .talkgroups import TalkGroupChange, TalkGroupManager
 from .writer import ByteRange, WriteResult, WriterError, edit_record, rename_record
 
 __all__ = [
     "ByteRange",
+    "Codeplug",
     "DecodedRecord",
     "KPG111Project",
     "ProgramTables",
+    "TalkGroupChange",
+    "TalkGroupManager",
     "WriteResult",
     "WriterError",
     "decode_program_tables",
