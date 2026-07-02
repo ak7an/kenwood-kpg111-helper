@@ -8,6 +8,7 @@ from .frequency import (
     format_frequency_mhz,
     reconstruct_frequency,
 )
+from .individual_ids import IndividualIDChange, IndividualIDManager
 from .model import DecodedRecord, ProgramTables
 from .project import Codeplug, KPG111Project
 from .talkgroups import TalkGroupChange, TalkGroupManager
@@ -17,6 +18,8 @@ __all__ = [
     "ByteRange",
     "Codeplug",
     "DecodedRecord",
+    "IndividualIDChange",
+    "IndividualIDManager",
     "KPG111Project",
     "ProgramTables",
     "TalkGroupChange",
