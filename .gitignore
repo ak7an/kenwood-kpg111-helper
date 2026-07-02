@@ -8,3 +8,6 @@ venv/
 # Local reverse-engineering experiment artifacts
 experiments/
 *.dat
+
+# Local/private reverse-engineering notes
+private-notes/
